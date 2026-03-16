@@ -36,6 +36,18 @@ class TwitterData(BaseModel):
     recent_topics: List[str] = Field(default_factory=list)
 
 
+class LinkedInData(BaseModel):
+    profile_url: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    location: Optional[str] = None
+    industry: Optional[str] = None
+    positions: List[Dict] = Field(default_factory=list)
+    education: List[Dict] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    connections: int = 0
+
+
 class WebSearchData(BaseModel):
     snippets: List[str] = Field(default_factory=list)
     sources: List[str] = Field(default_factory=list)
@@ -47,6 +59,7 @@ class FounderProfile(BaseModel):
     github: Optional[GitHubData] = None
     crunchbase: Optional[CrunchbaseData] = None
     twitter: Optional[TwitterData] = None
+    linkedin: Optional[LinkedInData] = None
     web_search: Optional[WebSearchData] = None
 
     def to_context_string(self) -> str:
@@ -90,6 +103,31 @@ class FounderProfile(BaseModel):
             parts.append(f"Followers: {self.twitter.followers}")
             if self.twitter.recent_topics:
                 parts.append(f"Recent topics: {', '.join(self.twitter.recent_topics)}")
+
+        if self.linkedin:
+            parts.append("\n--- LinkedIn ---")
+            if self.linkedin.headline:
+                parts.append(f"Headline: {self.linkedin.headline}")
+            if self.linkedin.summary:
+                parts.append(f"Summary: {self.linkedin.summary}")
+            if self.linkedin.location:
+                parts.append(f"Location: {self.linkedin.location}")
+            if self.linkedin.industry:
+                parts.append(f"Industry: {self.linkedin.industry}")
+            if self.linkedin.positions:
+                parts.append("Positions:")
+                for pos in self.linkedin.positions[:5]:
+                    title = pos.get("title", "?")
+                    company = pos.get("company", "?")
+                    parts.append(f"  - {title} at {company}")
+            if self.linkedin.education:
+                parts.append("Education:")
+                for edu in self.linkedin.education[:3]:
+                    school = edu.get("school", "?")
+                    degree = edu.get("degree", "")
+                    parts.append(f"  - {degree} @ {school}" if degree else f"  - {school}")
+            if self.linkedin.skills:
+                parts.append(f"Skills: {', '.join(self.linkedin.skills[:10])}")
 
         if self.web_search and self.web_search.snippets:
             parts.append("\n--- Web Search Results ---")
