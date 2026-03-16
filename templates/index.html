@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Founder Scraper</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+    h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
+    .search-form { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+    .search-form input { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 16px; color: #e0e0e0; font-size: 15px; outline: none; }
+    .search-form input:focus { border-color: #666; }
+    .search-form input[name="name"] { flex: 2; min-width: 200px; }
+    .search-form input[name="company"] { flex: 1; min-width: 140px; }
+    .search-form button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 500; }
+    .search-form button:hover { background: #1d4ed8; }
+    .search-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .loading { display: none; text-align: center; padding: 48px; color: #888; }
+    .loading.active { display: block; }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #333; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error { background: #2d1215; border: 1px solid #5c2328; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #f87171; display: none; }
+
+    .card { display: none; background: #141414; border: 1px solid #262626; border-radius: 12px; overflow: hidden; }
+    .card.active { display: block; }
+    .card-header { padding: 24px; border-bottom: 1px solid #262626; }
+    .card-header h2 { font-size: 22px; font-weight: 600; }
+    .card-header .company { color: #888; font-size: 14px; margin-top: 4px; }
+
+    .overall-score { padding: 24px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #262626; }
+    .score-number { font-size: 48px; font-weight: 700; min-width: 80px; }
+    .score-label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .score-bar-outer { flex: 1; height: 12px; background: #262626; border-radius: 6px; overflow: hidden; }
+    .score-bar-inner { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+
+    .breakdown { padding: 24px; border-bottom: 1px solid #262626; }
+    .breakdown h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 16px; }
+    .category { margin-bottom: 16px; }
+    .category:last-child { margin-bottom: 0; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cat-name { font-size: 14px; font-weight: 500; }
+    .cat-score { font-size: 14px; font-weight: 600; }
+    .cat-bar-outer { height: 6px; background: #262626; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .cat-bar-inner { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .cat-rationale { font-size: 13px; color: #999; line-height: 1.4; }
+
+    .section { padding: 24px; border-bottom: 1px solid #262626; }
+    .section:last-child { border-bottom: none; }
+    .section h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 12px; }
+    .thesis-summary { font-size: 15px; line-height: 1.6; }
+    .risk-item { font-size: 14px; line-height: 1.5; padding: 6px 0; padding-left: 16px; position: relative; }
+    .risk-item::before { content: "!"; position: absolute; left: 0; color: #f59e0b; font-weight: 700; font-size: 12px; }
+    .source-link { display: block; font-size: 13px; color: #60a5fa; text-decoration: none; padding: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .source-link:hover { text-decoration: underline; }
+
+    .score-green { color: #22c55e; }
+    .score-yellow { color: #eab308; }
+    .score-red { color: #ef4444; }
+    .bar-green { background: #22c55e; }
+    .bar-yellow { background: #eab308; }
+    .bar-red { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Founder Scraper</h1>
+    <p class="subtitle">AI-powered founder enrichment and scoring for VC deal flow</p>
+
+    <form class="search-form" id="searchForm">
+      <input type="text" name="name" placeholder="Founder name" required>
+      <input type="text" name="company" placeholder="Company (optional)">
+      <button type="submit" id="submitBtn">Score</button>
+    </form>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Scraping public data and analyzing with Claude...</p>
+      <p style="color: #666; font-size: 13px; margin-top: 8px;">This may take 15-30 seconds</p>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="card" id="card">
+      <div class="card-header">
+        <h2 id="founderName"></h2>
+        <div class="company" id="founderCompany"></div>
+      </div>
+
+      <div class="overall-score">
+        <div>
+          <div class="score-number" id="overallScore"></div>
+          <div class="score-label">Overall Score</div>
+        </div>
+        <div style="flex:1">
+          <div class="score-bar-outer">
+            <div class="score-bar-inner" id="overallBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <h3>Category Breakdown</h3>
+        <div id="categories"></div>
+      </div>
+
+      <div class="section" id="thesisSection">
+        <h3>Thesis Fit</h3>
+        <p class="thesis-summary" id="thesisSummary"></p>
+      </div>
+
+      <div class="section" id="risksSection">
+        <h3>Key Risks</h3>
+        <div id="risks"></div>
+      </div>
+
+      <div class="section" id="sourcesSection">
+        <h3>Sources</h3>
+        <div id="sources"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const loading = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const card = document.getElementById('card');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function scoreColor(score) {
+      if (score >= 70) return 'green';
+      if (score >= 45) return 'yellow';
+      return 'red';
+    }
+
+    function renderCategory(name, weight, score, rationale) {
+      const color = scoreColor(score);
+      return `
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">${name} (${weight})</span>
+            <span class="cat-score score-${color}">${score}</span>
+          </div>
+          <div class="cat-bar-outer">
+            <div class="cat-bar-inner bar-${color}" style="width: ${score}%"></div>
+          </div>
+          <div class="cat-rationale">${rationale}</div>
+        </div>
+      `;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const company = form.company.value.trim();
+
+      if (!name) return;
+
+      loading.classList.add('active');
+      card.classList.remove('active');
+      errorEl.style.display = 'none';
+      submitBtn.disabled = true;
+
+      try {
+        const resp = await fetch('/api/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, company: company || null }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: 'Request failed' }));
+          throw new Error(err.detail || `Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        const b = data.breakdown;
+        const color = scoreColor(data.overall_score);
+
+        document.getElementById('founderName').textContent = data.name;
+        document.getElementById('founderCompany').textContent = data.company || '';
+
+        const scoreEl = document.getElementById('overallScore');
+        scoreEl.textContent = Math.round(data.overall_score);
+        scoreEl.className = `score-number score-${color}`;
+
+        const bar = document.getElementById('overallBar');
+        bar.style.width = `${data.overall_score}%`;
+        bar.className = `score-bar-inner bar-${color}`;
+
+        document.getElementById('categories').innerHTML = [
+          renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
+          renderCategory('Market', '25%', b.market, b.market_rationale),
+          renderCategory('Traction', '25%', b.traction, b.traction_rationale),
+          renderCategory('Network', '10%', b.network, b.network_rationale),
+          renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
+        ].join('');
+
+        document.getElementById('thesisSummary').textContent = data.thesis_fit_summary || 'N/A';
+
+        const risksEl = document.getElementById('risks');
+        risksEl.innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${r}</div>`).join('');
+        document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
+
+        const sourcesEl = document.getElementById('sources');
+        sourcesEl.innerHTML = (data.source_links || []).map(s =>
+          `<a class="source-link" href="${s}" target="_blank" rel="noopener">${s}</a>`
+        ).join('');
+        document.getElementById('sourcesSection').style.display = data.source_links?.length ? '' : 'none';
+
+        card.classList.add('active');
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      } finally {
+        loading.classList.remove('active');
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

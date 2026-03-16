@@ -1,53 +1,53 @@
-from __future__ import annotations
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class GitHubData(BaseModel):
-    username: str | None = None
-    profile_url: str | None = None
-    bio: str | None = None
+    username: Optional[str] = None
+    profile_url: Optional[str] = None
+    bio: Optional[str] = None
     public_repos: int = 0
     followers: int = 0
-    top_languages: list[str] = Field(default_factory=list)
+    top_languages: List[str] = Field(default_factory=list)
     total_stars: int = 0
-    recent_activity: str | None = None
-    notable_repos: list[dict] = Field(default_factory=list)
+    recent_activity: Optional[str] = None
+    notable_repos: List[Dict] = Field(default_factory=list)
 
 
 class CrunchbaseData(BaseModel):
-    profile_url: str | None = None
-    title: str | None = None
-    company_name: str | None = None
-    company_description: str | None = None
-    funding_rounds: list[dict] = Field(default_factory=list)
-    total_funding: str | None = None
-    prior_companies: list[str] = Field(default_factory=list)
-    location: str | None = None
+    profile_url: Optional[str] = None
+    title: Optional[str] = None
+    company_name: Optional[str] = None
+    company_description: Optional[str] = None
+    funding_rounds: List[Dict] = Field(default_factory=list)
+    total_funding: Optional[str] = None
+    prior_companies: List[str] = Field(default_factory=list)
+    location: Optional[str] = None
 
 
 class TwitterData(BaseModel):
-    username: str | None = None
-    profile_url: str | None = None
-    bio: str | None = None
+    username: Optional[str] = None
+    profile_url: Optional[str] = None
+    bio: Optional[str] = None
     followers: int = 0
     following: int = 0
     post_count: int = 0
-    recent_topics: list[str] = Field(default_factory=list)
+    recent_topics: List[str] = Field(default_factory=list)
 
 
 class WebSearchData(BaseModel):
-    snippets: list[str] = Field(default_factory=list)
-    sources: list[str] = Field(default_factory=list)
+    snippets: List[str] = Field(default_factory=list)
+    sources: List[str] = Field(default_factory=list)
 
 
 class FounderProfile(BaseModel):
     name: str
-    company: str | None = None
-    github: GitHubData | None = None
-    crunchbase: CrunchbaseData | None = None
-    twitter: TwitterData | None = None
-    web_search: WebSearchData | None = None
+    company: Optional[str] = None
+    github: Optional[GitHubData] = None
+    crunchbase: Optional[CrunchbaseData] = None
+    twitter: Optional[TwitterData] = None
+    web_search: Optional[WebSearchData] = None
 
     def to_context_string(self) -> str:
         """Serialize profile into a text block for LLM analysis."""
@@ -114,9 +114,9 @@ class ScoreBreakdown(BaseModel):
 
 class FounderCard(BaseModel):
     name: str
-    company: str | None = None
+    company: Optional[str] = None
     overall_score: float = 0.0
-    breakdown: ScoreBreakdown | None = None
+    breakdown: Optional[ScoreBreakdown] = None
     thesis_fit_summary: str = ""
-    key_risks: list[str] = Field(default_factory=list)
-    source_links: list[str] = Field(default_factory=list)
+    key_risks: List[str] = Field(default_factory=list)
+    source_links: List[str] = Field(default_factory=list)
