@@ -194,6 +194,8 @@ async def score_founder(
         source_links.append(profile.crunchbase.profile_url)
     if profile.twitter and profile.twitter.profile_url:
         source_links.append(profile.twitter.profile_url)
+    if profile.pdl and profile.pdl.linkedin_url:
+        source_links.append(profile.pdl.linkedin_url)
     if profile.web_search:
         source_links.extend(profile.web_search.sources[:3])
 

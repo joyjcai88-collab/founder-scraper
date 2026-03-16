@@ -36,6 +36,20 @@ class TwitterData(BaseModel):
     recent_topics: List[str] = Field(default_factory=list)
 
 
+class PDLData(BaseModel):
+    """People Data Labs enrichment data — work history, education, social profiles."""
+    linkedin_url: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    location: Optional[str] = None
+    industry: Optional[str] = None
+    experience: List[Dict] = Field(default_factory=list)
+    education: List[Dict] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    social_profiles: List[str] = Field(default_factory=list)
+    likelihood: int = 0
+
+
 class WebSearchData(BaseModel):
     snippets: List[str] = Field(default_factory=list)
     sources: List[str] = Field(default_factory=list)
@@ -47,6 +61,7 @@ class FounderProfile(BaseModel):
     github: Optional[GitHubData] = None
     crunchbase: Optional[CrunchbaseData] = None
     twitter: Optional[TwitterData] = None
+    pdl: Optional[PDLData] = None
     web_search: Optional[WebSearchData] = None
 
     def to_context_string(self) -> str:
@@ -90,6 +105,36 @@ class FounderProfile(BaseModel):
             parts.append(f"Followers: {self.twitter.followers}")
             if self.twitter.recent_topics:
                 parts.append(f"Recent topics: {', '.join(self.twitter.recent_topics)}")
+
+        if self.pdl:
+            parts.append("\n--- People Data Labs ---")
+            if self.pdl.headline:
+                parts.append(f"Headline: {self.pdl.headline}")
+            if self.pdl.summary:
+                parts.append(f"Summary: {self.pdl.summary}")
+            if self.pdl.location:
+                parts.append(f"Location: {self.pdl.location}")
+            if self.pdl.industry:
+                parts.append(f"Industry: {self.pdl.industry}")
+            if self.pdl.experience:
+                parts.append("Work Experience:")
+                for exp in self.pdl.experience[:6]:
+                    title = exp.get("title", "?")
+                    company = exp.get("company", "?")
+                    start = exp.get("start_date", "")
+                    end = exp.get("end_date", "present")
+                    parts.append(f"  - {title} at {company} ({start} - {end})")
+            if self.pdl.education:
+                parts.append("Education:")
+                for edu in self.pdl.education[:3]:
+                    school = edu.get("school", "?")
+                    degree = edu.get("degree", "")
+                    major = edu.get("major", "")
+                    desc = f"{degree} in {major}" if degree and major else degree or major
+                    parts.append(f"  - {desc} @ {school}" if desc else f"  - {school}")
+            if self.pdl.skills:
+                parts.append(f"Skills: {', '.join(self.pdl.skills[:15])}")
+            parts.append(f"Match confidence: {self.pdl.likelihood}/10")
 
         if self.web_search and self.web_search.snippets:
             parts.append("\n--- Web Search Results ---")
