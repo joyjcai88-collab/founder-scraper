@@ -64,6 +64,23 @@
     .bar-green { background: #22c55e; }
     .bar-yellow { background: #eab308; }
     .bar-red { background: #ef4444; }
+
+    .enrichment-grid { display: grid; gap: 24px; }
+    .exp-item, .edu-item { padding: 12px 0; border-bottom: 1px solid #1f1f1f; }
+    .exp-item:last-child, .edu-item:last-child { border-bottom: none; }
+    .exp-title { font-size: 15px; font-weight: 600; }
+    .exp-company { font-size: 14px; color: #60a5fa; }
+    .exp-dates { font-size: 13px; color: #888; margin-top: 2px; }
+    .edu-school { font-size: 15px; font-weight: 600; }
+    .edu-degree { font-size: 14px; color: #999; }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 4px 12px; font-size: 13px; color: #94a3b8; }
+    .social-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #60a5fa; text-decoration: none; padding: 4px 0; margin-right: 16px; }
+    .social-link:hover { text-decoration: underline; }
+    .confidence-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+    .confidence-high { background: #14532d; color: #4ade80; }
+    .confidence-mid { background: #422006; color: #fbbf24; }
+    .confidence-low { background: #450a0a; color: #f87171; }
   </style>
 </head>
 <body>
@@ -118,6 +135,31 @@
         <div id="risks"></div>
       </div>
 
+      <div class="section" id="confidenceSection" style="display:none">
+        <h3>Match Confidence</h3>
+        <div id="confidence"></div>
+      </div>
+
+      <div class="section" id="experienceSection" style="display:none">
+        <h3>Work Experience</h3>
+        <div id="experience"></div>
+      </div>
+
+      <div class="section" id="educationSection" style="display:none">
+        <h3>Education</h3>
+        <div id="education"></div>
+      </div>
+
+      <div class="section" id="skillsSection" style="display:none">
+        <h3>Skills</h3>
+        <div id="skills" class="skills-list"></div>
+      </div>
+
+      <div class="section" id="socialsSection" style="display:none">
+        <h3>Social Profiles</h3>
+        <div id="socials"></div>
+      </div>
+
       <div class="section" id="sourcesSection">
         <h3>Sources</h3>
         <div id="sources"></div>
@@ -131,6 +173,12 @@
     const errorEl = document.getElementById('error');
     const card = document.getElementById('card');
     const submitBtn = document.getElementById('submitBtn');
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
 
     function scoreColor(score) {
       if (score >= 70) return 'green';
@@ -178,7 +226,9 @@
           throw new Error(err.detail || `Error ${resp.status}`);
         }
 
-        const data = await resp.json();
+        const resp_data = await resp.json();
+        const data = resp_data.card;
+        const enrichment = resp_data.enrichment;
         const b = data.breakdown;
         const color = scoreColor(data.overall_score);
 
@@ -206,6 +256,79 @@
         const risksEl = document.getElementById('risks');
         risksEl.innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${r}</div>`).join('');
         document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
+
+        // Enrichment: PDL data
+        const confSection = document.getElementById('confidenceSection');
+        const expSection = document.getElementById('experienceSection');
+        const eduSection = document.getElementById('educationSection');
+        const skillsSection = document.getElementById('skillsSection');
+        const socialsSection = document.getElementById('socialsSection');
+
+        if (enrichment) {
+          // Match confidence
+          if (enrichment.likelihood > 0) {
+            const l = enrichment.likelihood;
+            const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
+            document.getElementById('confidence').innerHTML =
+              `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>
+               <span style="color:#888;font-size:13px;margin-left:12px">How likely this data matches the queried person</span>`;
+            confSection.style.display = '';
+          } else { confSection.style.display = 'none'; }
+
+          // Work experience
+          if (enrichment.experience?.length) {
+            document.getElementById('experience').innerHTML = enrichment.experience.map(exp =>
+              `<div class="exp-item">
+                <div class="exp-title">${esc(exp.title || 'Unknown Role')}</div>
+                <div class="exp-company">${esc(exp.company || 'Unknown Company')}</div>
+                <div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div>
+              </div>`
+            ).join('');
+            expSection.style.display = '';
+          } else { expSection.style.display = 'none'; }
+
+          // Education
+          if (enrichment.education?.length) {
+            document.getElementById('education').innerHTML = enrichment.education.map(edu => {
+              const degree = [edu.degree, edu.major].filter(Boolean).join(' in ');
+              return `<div class="edu-item">
+                <div class="edu-school">${esc(edu.school || 'Unknown School')}</div>
+                ${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}
+              </div>`;
+            }).join('');
+            eduSection.style.display = '';
+          } else { eduSection.style.display = 'none'; }
+
+          // Skills
+          if (enrichment.skills?.length) {
+            document.getElementById('skills').innerHTML = enrichment.skills.map(s =>
+              `<span class="skill-tag">${esc(s)}</span>`
+            ).join('');
+            skillsSection.style.display = '';
+          } else { skillsSection.style.display = 'none'; }
+
+          // Social profiles
+          const socials = enrichment.social_profiles || [];
+          if (enrichment.linkedin_url) socials.unshift(enrichment.linkedin_url);
+          const uniqueSocials = [...new Set(socials)];
+          if (uniqueSocials.length) {
+            document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
+              let label = 'Link';
+              if (url.includes('linkedin')) label = 'LinkedIn';
+              else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
+              else if (url.includes('github')) label = 'GitHub';
+              else if (url.includes('facebook')) label = 'Facebook';
+              return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
+            }).join('');
+            socialsSection.style.display = '';
+          } else { socialsSection.style.display = 'none'; }
+        } else {
+          confSection.style.display = 'none';
+          expSection.style.display = 'none';
+          eduSection.style.display = 'none';
+          skillsSection.style.display = 'none';
+          socialsSection.style.display = 'none';
+        }
 
         const sourcesEl = document.getElementById('sources');
         sourcesEl.innerHTML = (data.source_links || []).map(s =>

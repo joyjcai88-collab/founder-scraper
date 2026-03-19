@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from analyzer.enricher import enrich_founder
 from analyzer.scorer import score_founder
-from models.founder import FounderCard
+from models.founder import FounderCard, PDLData
 from scraper.safety import sanitize_input
 
 load_dotenv()
@@ -27,13 +27,18 @@ class ScoreRequest(BaseModel):
     company: Optional[str] = None
 
 
+class ScoreResponse(BaseModel):
+    card: FounderCard
+    enrichment: Optional[PDLData] = None
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/api/score")
-async def api_score(req: ScoreRequest) -> FounderCard:
+async def api_score(req: ScoreRequest) -> ScoreResponse:
     name = sanitize_input(req.name)
     company = sanitize_input(req.company) if req.company else None
 
@@ -43,7 +48,7 @@ async def api_score(req: ScoreRequest) -> FounderCard:
     loop = asyncio.get_event_loop()
     card = await loop.run_in_executor(None, partial(_sync_score, profile))
 
-    return card
+    return ScoreResponse(card=card, enrichment=profile.pdl)
 
 
 def _sync_score(profile):

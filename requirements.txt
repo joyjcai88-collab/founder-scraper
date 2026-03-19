@@ -1,0 +1,11 @@
+httpx
+beautifulsoup4
+lxml
+anthropic
+pydantic
+rich
+python-dotenv
+duckduckgo-search
+fastapi
+uvicorn[standard]
+jinja2
