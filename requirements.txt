@@ -5,7 +5,6 @@ anthropic
 pydantic
 rich
 python-dotenv
-duckduckgo-search
 fastapi
 uvicorn[standard]
 jinja2
