@@ -36,6 +36,21 @@ class TwitterData(BaseModel):
     recent_topics: List[str] = Field(default_factory=list)
 
 
+class LinkedInData(BaseModel):
+    """LinkedIn profile data via RapidAPI."""
+    profile_url: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    location: Optional[str] = None
+    followers: int = 0
+    connections: int = 0
+    experience: List[Dict] = Field(default_factory=list)
+    education: List[Dict] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    certifications: List[Dict] = Field(default_factory=list)
+    languages: List[str] = Field(default_factory=list)
+
+
 class PDLData(BaseModel):
     """People Data Labs enrichment data — work history, education, social profiles."""
     linkedin_url: Optional[str] = None
@@ -61,6 +76,7 @@ class FounderProfile(BaseModel):
     github: Optional[GitHubData] = None
     crunchbase: Optional[CrunchbaseData] = None
     twitter: Optional[TwitterData] = None
+    linkedin: Optional[LinkedInData] = None
     pdl: Optional[PDLData] = None
     web_search: Optional[WebSearchData] = None
 
@@ -105,6 +121,35 @@ class FounderProfile(BaseModel):
             parts.append(f"Followers: {self.twitter.followers}")
             if self.twitter.recent_topics:
                 parts.append(f"Recent topics: {', '.join(self.twitter.recent_topics)}")
+
+        if self.linkedin:
+            parts.append("\n--- LinkedIn ---")
+            if self.linkedin.headline:
+                parts.append(f"Headline: {self.linkedin.headline}")
+            if self.linkedin.summary:
+                parts.append(f"Summary: {self.linkedin.summary[:500]}")
+            if self.linkedin.location:
+                parts.append(f"Location: {self.linkedin.location}")
+            parts.append(f"Followers: {self.linkedin.followers}")
+            parts.append(f"Connections: {self.linkedin.connections}")
+            if self.linkedin.experience:
+                parts.append("Work Experience:")
+                for exp in self.linkedin.experience[:6]:
+                    title = exp.get("title", "?")
+                    company = exp.get("company", "?")
+                    start = exp.get("start_date", "")
+                    end = exp.get("end_date", "Present")
+                    parts.append(f"  - {title} at {company} ({start} - {end})")
+            if self.linkedin.education:
+                parts.append("Education:")
+                for edu in self.linkedin.education[:4]:
+                    school = edu.get("school", "?")
+                    degree = edu.get("degree", "")
+                    field = edu.get("field", "")
+                    desc = f"{degree} in {field}" if degree and field else degree or field
+                    parts.append(f"  - {desc} @ {school}" if desc else f"  - {school}")
+            if self.linkedin.skills:
+                parts.append(f"Skills: {', '.join(self.linkedin.skills[:20])}")
 
         if self.pdl:
             parts.append("\n--- People Data Labs ---")

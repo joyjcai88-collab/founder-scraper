@@ -140,6 +140,14 @@
         <div id="risks"></div>
       </div>
 
+      <div class="section" id="linkedinSection" style="display:none">
+        <h3>LinkedIn Profile</h3>
+        <div id="linkedinHeadline" style="font-size:15px; font-weight:500; margin-bottom:4px;"></div>
+        <div id="linkedinMeta" style="font-size:13px; color:#888; margin-bottom:12px;"></div>
+        <div id="linkedinSummary" style="font-size:14px; line-height:1.5; color:#bbb; margin-bottom:16px;"></div>
+        <div id="linkedinLink"></div>
+      </div>
+
       <div class="section" id="confidenceSection" style="display:none">
         <h3>Match Confidence</h3>
         <div id="confidence"></div>
@@ -312,78 +320,97 @@
         risksEl.innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${r}</div>`).join('');
         document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
 
-        // Enrichment: PDL data
+        // Enrichment data: merge LinkedIn (RapidAPI) + PDL
+        const li = resp_data.linkedin;  // LinkedInData from RapidAPI
         const confSection = document.getElementById('confidenceSection');
         const expSection = document.getElementById('experienceSection');
         const eduSection = document.getElementById('educationSection');
         const skillsSection = document.getElementById('skillsSection');
         const socialsSection = document.getElementById('socialsSection');
+        const liSection = document.getElementById('linkedinSection');
 
-        if (enrichment) {
-          // Match confidence
-          if (enrichment.likelihood > 0) {
-            const l = enrichment.likelihood;
-            const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
-            document.getElementById('confidence').innerHTML =
-              `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>
-               <span style="color:#888;font-size:13px;margin-left:12px">How likely this data matches the queried person</span>`;
-            confSection.style.display = '';
-          } else { confSection.style.display = 'none'; }
+        // --- LinkedIn profile card ---
+        if (li) {
+          if (li.headline) document.getElementById('linkedinHeadline').textContent = li.headline;
+          const metaParts = [];
+          if (li.location) metaParts.push(li.location);
+          if (li.followers) metaParts.push(`${li.followers.toLocaleString()} followers`);
+          if (li.connections) metaParts.push(`${li.connections.toLocaleString()} connections`);
+          document.getElementById('linkedinMeta').textContent = metaParts.join(' · ');
+          if (li.summary) {
+            document.getElementById('linkedinSummary').textContent = li.summary.slice(0, 500);
+          }
+          if (li.profile_url) {
+            document.getElementById('linkedinLink').innerHTML =
+              `<a class="social-link" href="${esc(li.profile_url)}" target="_blank" rel="noopener">View LinkedIn Profile</a>`;
+          }
+          liSection.style.display = '';
+        } else { liSection.style.display = 'none'; }
 
-          // Work experience
-          if (enrichment.experience?.length) {
-            document.getElementById('experience').innerHTML = enrichment.experience.map(exp =>
-              `<div class="exp-item">
-                <div class="exp-title">${esc(exp.title || 'Unknown Role')}</div>
-                <div class="exp-company">${esc(exp.company || 'Unknown Company')}</div>
-                <div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div>
-              </div>`
-            ).join('');
-            expSection.style.display = '';
-          } else { expSection.style.display = 'none'; }
+        // --- Merge experience: prefer LinkedIn, fall back to PDL ---
+        const allExperience = (li?.experience?.length ? li.experience : enrichment?.experience) || [];
+        if (allExperience.length) {
+          document.getElementById('experience').innerHTML = allExperience.map(exp =>
+            `<div class="exp-item">
+              <div class="exp-title">${esc(exp.title || 'Unknown Role')}</div>
+              <div class="exp-company">${esc(exp.company || 'Unknown Company')}</div>
+              <div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div>
+              ${exp.description ? `<div style="font-size:13px;color:#999;margin-top:4px">${esc(exp.description)}</div>` : ''}
+            </div>`
+          ).join('');
+          expSection.style.display = '';
+        } else { expSection.style.display = 'none'; }
 
-          // Education
-          if (enrichment.education?.length) {
-            document.getElementById('education').innerHTML = enrichment.education.map(edu => {
-              const degree = [edu.degree, edu.major].filter(Boolean).join(' in ');
-              return `<div class="edu-item">
-                <div class="edu-school">${esc(edu.school || 'Unknown School')}</div>
-                ${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}
-              </div>`;
-            }).join('');
-            eduSection.style.display = '';
-          } else { eduSection.style.display = 'none'; }
+        // --- Merge education: prefer LinkedIn, fall back to PDL ---
+        const allEducation = (li?.education?.length ? li.education : enrichment?.education) || [];
+        if (allEducation.length) {
+          document.getElementById('education').innerHTML = allEducation.map(edu => {
+            const degree = [edu.degree, edu.field || edu.major].filter(Boolean).join(' in ');
+            const dates = [edu.start_date, edu.end_date].filter(Boolean).join(' — ');
+            return `<div class="edu-item">
+              <div class="edu-school">${esc(edu.school || 'Unknown School')}</div>
+              ${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}
+              ${dates ? `<div style="font-size:13px;color:#888">${esc(dates)}</div>` : ''}
+            </div>`;
+          }).join('');
+          eduSection.style.display = '';
+        } else { eduSection.style.display = 'none'; }
 
-          // Skills
-          if (enrichment.skills?.length) {
-            document.getElementById('skills').innerHTML = enrichment.skills.map(s =>
-              `<span class="skill-tag">${esc(s)}</span>`
-            ).join('');
-            skillsSection.style.display = '';
-          } else { skillsSection.style.display = 'none'; }
+        // --- Merge skills: combine LinkedIn + PDL, deduplicate ---
+        const allSkills = [...new Set([...(li?.skills || []), ...(enrichment?.skills || [])])];
+        if (allSkills.length) {
+          document.getElementById('skills').innerHTML = allSkills.map(s =>
+            `<span class="skill-tag">${esc(s)}</span>`
+          ).join('');
+          skillsSection.style.display = '';
+        } else { skillsSection.style.display = 'none'; }
 
-          // Social profiles
-          const socials = enrichment.social_profiles || [];
-          if (enrichment.linkedin_url) socials.unshift(enrichment.linkedin_url);
-          const uniqueSocials = [...new Set(socials)];
-          if (uniqueSocials.length) {
-            document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
-              let label = 'Link';
-              if (url.includes('linkedin')) label = 'LinkedIn';
-              else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
-              else if (url.includes('github')) label = 'GitHub';
-              else if (url.includes('facebook')) label = 'Facebook';
-              return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
-            }).join('');
-            socialsSection.style.display = '';
-          } else { socialsSection.style.display = 'none'; }
-        } else {
-          confSection.style.display = 'none';
-          expSection.style.display = 'none';
-          eduSection.style.display = 'none';
-          skillsSection.style.display = 'none';
-          socialsSection.style.display = 'none';
-        }
+        // --- Match confidence (PDL) ---
+        if (enrichment?.likelihood > 0) {
+          const l = enrichment.likelihood;
+          const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
+          document.getElementById('confidence').innerHTML =
+            `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>
+             <span style="color:#888;font-size:13px;margin-left:12px">How likely this data matches the queried person</span>`;
+          confSection.style.display = '';
+        } else { confSection.style.display = 'none'; }
+
+        // --- Social profiles: merge all sources ---
+        const socials = [...(enrichment?.social_profiles || [])];
+        if (enrichment?.linkedin_url) socials.unshift(enrichment.linkedin_url);
+        if (li?.profile_url) socials.unshift(li.profile_url);
+        const uniqueSocials = [...new Set(socials)];
+        if (uniqueSocials.length) {
+          document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
+            let label = 'Link';
+            if (url.includes('linkedin')) label = 'LinkedIn';
+            else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
+            else if (url.includes('github')) label = 'GitHub';
+            else if (url.includes('facebook')) label = 'Facebook';
+            return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
+          }).join('');
+          socialsSection.style.display = '';
+        } else { socialsSection.style.display = 'none'; }
 
         const sourcesEl = document.getElementById('sources');
         sourcesEl.innerHTML = (data.source_links || []).map(s =>

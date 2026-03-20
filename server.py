@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from analyzer.enricher import enrich_founder
 from analyzer.scorer import score_founder
-from models.founder import FounderCard, PDLData
+from models.founder import FounderCard, LinkedInData, PDLData
 from scraper.linkedin import (
     build_auth_url,
     exchange_code_for_token,
@@ -40,6 +40,7 @@ class ScoreRequest(BaseModel):
 class ScoreResponse(BaseModel):
     card: FounderCard
     enrichment: Optional[PDLData] = None
+    linkedin: Optional[LinkedInData] = None
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -139,7 +140,7 @@ async def api_score(req: ScoreRequest) -> ScoreResponse:
     loop = asyncio.get_event_loop()
     card = await loop.run_in_executor(None, partial(_sync_score, profile))
 
-    return ScoreResponse(card=card, enrichment=profile.pdl)
+    return ScoreResponse(card=card, enrichment=profile.pdl, linkedin=profile.linkedin)
 
 
 def _sync_score(profile):
