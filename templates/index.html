@@ -88,6 +88,11 @@
     <h1>Founder Scraper</h1>
     <p class="subtitle">AI-powered founder enrichment and scoring for VC deal flow</p>
 
+    <div id="linkedinBar" style="display:none; margin-bottom: 16px; padding: 12px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; align-items: center; gap: 12px;">
+      <span id="linkedinStatus" style="font-size: 13px; color: #888; flex: 1;"></span>
+      <button id="linkedinBtn" style="background: #0a66c2; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500;">Connect LinkedIn</button>
+    </div>
+
     <form class="search-form" id="searchForm">
       <input type="text" name="name" placeholder="Founder name" required>
       <input type="text" name="company" placeholder="Company (optional)">
@@ -173,6 +178,56 @@
     const errorEl = document.getElementById('error');
     const card = document.getElementById('card');
     const submitBtn = document.getElementById('submitBtn');
+
+    // --- LinkedIn OAuth ---
+    const linkedinBar = document.getElementById('linkedinBar');
+    const linkedinStatus = document.getElementById('linkedinStatus');
+    const linkedinBtn = document.getElementById('linkedinBtn');
+
+    async function checkLinkedIn() {
+      try {
+        const resp = await fetch('/api/linkedin/status');
+        const data = await resp.json();
+        if (!data.configured) {
+          linkedinBar.style.display = 'none';
+          return;
+        }
+        linkedinBar.style.display = 'flex';
+        if (data.connected && data.profile) {
+          linkedinStatus.textContent = `LinkedIn connected: ${data.profile.name || data.profile.email || 'Connected'}`;
+          linkedinStatus.style.color = '#4ade80';
+          linkedinBtn.textContent = 'Disconnect';
+          linkedinBtn.style.background = '#333';
+          linkedinBtn.onclick = disconnectLinkedIn;
+        } else {
+          linkedinStatus.textContent = 'Connect your LinkedIn for enhanced profile data';
+          linkedinStatus.style.color = '#888';
+          linkedinBtn.textContent = 'Connect LinkedIn';
+          linkedinBtn.style.background = '#0a66c2';
+          linkedinBtn.onclick = connectLinkedIn;
+        }
+      } catch (e) {
+        linkedinBar.style.display = 'none';
+      }
+    }
+
+    function connectLinkedIn() {
+      const w = window.open('/api/linkedin/connect', 'linkedin_oauth', 'width=600,height=700');
+      window.addEventListener('message', function handler(evt) {
+        if (evt.data?.type === 'linkedin_connected') {
+          window.removeEventListener('message', handler);
+          checkLinkedIn();
+        }
+      });
+    }
+
+    async function disconnectLinkedIn() {
+      await fetch('/api/linkedin/disconnect');
+      checkLinkedIn();
+    }
+
+    // Check LinkedIn status on page load
+    checkLinkedIn();
 
     function esc(s) {
       const d = document.createElement('div');
