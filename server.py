@@ -3,7 +3,7 @@
 import asyncio
 from functools import partial
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
+from analyzer.discovery import discover_founders
 from analyzer.enricher import enrich_founder
 from analyzer.scorer import score_founder
 from models.founder import FounderCard, LinkedInData, PDLData
@@ -35,6 +36,29 @@ _linkedin_profiles: Dict[str, Dict[str, Any]] = {}
 class ScoreRequest(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     company: Optional[str] = None
+
+
+class DiscoverRequest(BaseModel):
+    industry: str = Field(min_length=1, max_length=200)
+    stage: Optional[str] = None
+    product: Optional[str] = None
+    date_founded: Optional[str] = None
+    limit: int = Field(default=10, ge=1, le=25)
+
+
+class FounderResult(BaseModel):
+    name: str
+    company: Optional[str] = None
+    role: Optional[str] = None
+    card: Optional[FounderCard] = None
+    enrichment: Optional[PDLData] = None
+    linkedin: Optional[LinkedInData] = None
+    error: Optional[str] = None
+
+
+class DiscoverResponse(BaseModel):
+    query: str
+    founders: List[FounderResult] = Field(default_factory=list)
 
 
 class ScoreResponse(BaseModel):
@@ -141,6 +165,69 @@ async def api_score(req: ScoreRequest) -> ScoreResponse:
     card = await loop.run_in_executor(None, partial(_sync_score, profile))
 
     return ScoreResponse(card=card, enrichment=profile.pdl, linkedin=profile.linkedin)
+
+
+@app.post("/api/discover")
+async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
+    """Discover founders by company criteria (industry, stage, product, date)."""
+    # Build a human-readable query summary
+    parts = [sanitize_input(req.industry)]
+    if req.stage:
+        parts.append(sanitize_input(req.stage))
+    if req.product:
+        parts.append(sanitize_input(req.product))
+    if req.date_founded:
+        parts.append(f"founded {sanitize_input(req.date_founded)}")
+    query_summary = " / ".join(parts)
+
+    # Discover founders via Perplexity
+    raw_founders = await discover_founders(
+        industry=req.industry,
+        stage=req.stage,
+        product=req.product,
+        date_founded=req.date_founded,
+        limit=req.limit,
+    )
+
+    if not raw_founders:
+        return DiscoverResponse(query=query_summary, founders=[])
+
+    # Enrich and score each founder concurrently
+    async def _process_one(entry: Dict) -> FounderResult:
+        name = sanitize_input(entry.get("name", ""))
+        company = sanitize_input(entry.get("company", "")) or None
+        role = entry.get("role", "")
+        if not name:
+            return FounderResult(name="Unknown", error="No name returned")
+        try:
+            profile = await enrich_founder(name, company)
+            loop = asyncio.get_event_loop()
+            card = await loop.run_in_executor(
+                None, partial(_sync_score, profile)
+            )
+            return FounderResult(
+                name=name,
+                company=company,
+                role=role,
+                card=card,
+                enrichment=profile.pdl,
+                linkedin=profile.linkedin,
+            )
+        except Exception as e:
+            return FounderResult(
+                name=name, company=company, role=role, error=str(e)
+            )
+
+    results = await asyncio.gather(*[_process_one(f) for f in raw_founders])
+
+    # Sort by overall score (highest first), errors at the end
+    scored = sorted(
+        results,
+        key=lambda r: r.card.overall_score if r.card else -1,
+        reverse=True,
+    )
+
+    return DiscoverResponse(query=query_summary, founders=scored)
 
 
 def _sync_score(profile):

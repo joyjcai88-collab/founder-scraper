@@ -7,17 +7,37 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
-    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+    .container { max-width: 780px; margin: 0 auto; padding: 48px 24px; }
     h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
-    .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
+    .subtitle { color: #888; margin-bottom: 24px; font-size: 14px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid #333; }
+    .tab { padding: 10px 24px; font-size: 14px; font-weight: 500; color: #888; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab:hover { color: #ccc; }
+    .tab.active { color: #e0e0e0; border-bottom-color: #2563eb; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Forms */
     .search-form { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
-    .search-form input { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 16px; color: #e0e0e0; font-size: 15px; outline: none; }
-    .search-form input:focus { border-color: #666; }
+    .search-form input, .search-form select { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 16px; color: #e0e0e0; font-size: 15px; outline: none; }
+    .search-form input:focus, .search-form select:focus { border-color: #666; }
+    .search-form select { appearance: none; cursor: pointer; }
     .search-form input[name="name"] { flex: 2; min-width: 200px; }
     .search-form input[name="company"] { flex: 1; min-width: 140px; }
-    .search-form button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 500; }
+    .search-form button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 500; white-space: nowrap; }
     .search-form button:hover { background: #1d4ed8; }
     .search-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .discover-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+    .discover-form input, .discover-form select { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 12px 16px; color: #e0e0e0; font-size: 15px; outline: none; width: 100%; }
+    .discover-form input:focus, .discover-form select:focus { border-color: #666; }
+    .discover-form select { appearance: none; cursor: pointer; }
+    .discover-form .full-width { grid-column: 1 / -1; }
+    .discover-form button { grid-column: 1 / -1; background: #7c3aed; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 500; }
+    .discover-form button:hover { background: #6d28d9; }
+    .discover-form button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .loading { display: none; text-align: center; padding: 48px; color: #888; }
     .loading.active { display: block; }
@@ -26,6 +46,7 @@
 
     .error { background: #2d1215; border: 1px solid #5c2328; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #f87171; display: none; }
 
+    /* Score card */
     .card { display: none; background: #141414; border: 1px solid #262626; border-radius: 12px; overflow: hidden; }
     .card.active { display: block; }
     .card-header { padding: 24px; border-bottom: 1px solid #262626; }
@@ -81,6 +102,28 @@
     .confidence-high { background: #14532d; color: #4ade80; }
     .confidence-mid { background: #422006; color: #fbbf24; }
     .confidence-low { background: #450a0a; color: #f87171; }
+
+    /* Discover results list */
+    .discover-results { display: none; }
+    .discover-results.active { display: block; }
+    .discover-header { font-size: 14px; color: #888; margin-bottom: 16px; }
+    .discover-header span { color: #e0e0e0; font-weight: 500; }
+    .founder-row { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #141414; border: 1px solid #262626; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; }
+    .founder-row:hover { border-color: #444; }
+    .founder-row .rank { font-size: 20px; font-weight: 700; color: #555; min-width: 32px; text-align: center; }
+    .founder-row .info { flex: 1; }
+    .founder-row .info .fname { font-size: 16px; font-weight: 600; }
+    .founder-row .info .fmeta { font-size: 13px; color: #888; margin-top: 2px; }
+    .founder-row .fscore { font-size: 24px; font-weight: 700; min-width: 50px; text-align: right; }
+    .founder-row .ferror { font-size: 13px; color: #f87171; }
+    .founder-detail { display: none; margin-top: 16px; }
+    .founder-detail.active { display: block; }
+    .back-btn { background: none; border: 1px solid #333; color: #888; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 16px; }
+    .back-btn:hover { color: #e0e0e0; border-color: #555; }
+
+    .progress-bar { width: 100%; height: 4px; background: #262626; border-radius: 2px; margin-top: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #7c3aed; border-radius: 2px; transition: width 0.3s; }
+    .progress-text { font-size: 12px; color: #666; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -88,121 +131,226 @@
     <h1>Founder Scraper</h1>
     <p class="subtitle">AI-powered founder enrichment and scoring for VC deal flow</p>
 
-    <div id="linkedinBar" style="display:none; margin-bottom: 16px; padding: 12px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; align-items: center; gap: 12px;">
-      <span id="linkedinStatus" style="font-size: 13px; color: #888; flex: 1;"></span>
-      <button id="linkedinBtn" style="background: #0a66c2; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500;">Connect LinkedIn</button>
+    <div class="tabs">
+      <div class="tab active" data-tab="score">Score Founder</div>
+      <div class="tab" data-tab="discover">Discover Founders</div>
     </div>
 
-    <form class="search-form" id="searchForm">
-      <input type="text" name="name" placeholder="Founder name" required>
-      <input type="text" name="company" placeholder="Company (optional)">
-      <button type="submit" id="submitBtn">Score</button>
-    </form>
-
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Scraping public data and analyzing with Claude...</p>
-      <p style="color: #666; font-size: 13px; margin-top: 8px;">This may take 15-30 seconds</p>
-    </div>
-
-    <div class="error" id="error"></div>
-
-    <div class="card" id="card">
-      <div class="card-header">
-        <h2 id="founderName"></h2>
-        <div class="company" id="founderCompany"></div>
+    <!-- ===== SCORE TAB ===== -->
+    <div class="tab-panel active" id="panel-score">
+      <div id="linkedinBar" style="display:none; margin-bottom: 16px; padding: 12px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; align-items: center; gap: 12px;">
+        <span id="linkedinStatus" style="font-size: 13px; color: #888; flex: 1;"></span>
+        <button id="linkedinBtn" style="background: #0a66c2; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500;">Connect LinkedIn</button>
       </div>
 
-      <div class="overall-score">
-        <div>
-          <div class="score-number" id="overallScore"></div>
-          <div class="score-label">Overall Score</div>
+      <form class="search-form" id="searchForm">
+        <input type="text" name="name" placeholder="Founder name" required>
+        <input type="text" name="company" placeholder="Company (optional)">
+        <button type="submit" id="submitBtn">Score</button>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Scraping public data and analyzing with Claude...</p>
+        <p style="color: #666; font-size: 13px; margin-top: 8px;">This may take 15-30 seconds</p>
+      </div>
+
+      <div class="error" id="error"></div>
+
+      <div class="card" id="card">
+        <div class="card-header">
+          <h2 id="founderName"></h2>
+          <div class="company" id="founderCompany"></div>
         </div>
-        <div style="flex:1">
-          <div class="score-bar-outer">
-            <div class="score-bar-inner" id="overallBar"></div>
+        <div class="overall-score">
+          <div>
+            <div class="score-number" id="overallScore"></div>
+            <div class="score-label">Overall Score</div>
+          </div>
+          <div style="flex:1">
+            <div class="score-bar-outer">
+              <div class="score-bar-inner" id="overallBar"></div>
+            </div>
           </div>
         </div>
+        <div class="breakdown">
+          <h3>Category Breakdown</h3>
+          <div id="categories"></div>
+        </div>
+        <div class="section" id="thesisSection">
+          <h3>Thesis Fit</h3>
+          <p class="thesis-summary" id="thesisSummary"></p>
+        </div>
+        <div class="section" id="risksSection">
+          <h3>Key Risks</h3>
+          <div id="risks"></div>
+        </div>
+        <div class="section" id="linkedinSection" style="display:none">
+          <h3>LinkedIn Profile</h3>
+          <div id="linkedinHeadline" style="font-size:15px; font-weight:500; margin-bottom:4px;"></div>
+          <div id="linkedinMeta" style="font-size:13px; color:#888; margin-bottom:12px;"></div>
+          <div id="linkedinSummary" style="font-size:14px; line-height:1.5; color:#bbb; margin-bottom:16px;"></div>
+          <div id="linkedinLink"></div>
+        </div>
+        <div class="section" id="confidenceSection" style="display:none">
+          <h3>Match Confidence</h3>
+          <div id="confidence"></div>
+        </div>
+        <div class="section" id="experienceSection" style="display:none">
+          <h3>Work Experience</h3>
+          <div id="experience"></div>
+        </div>
+        <div class="section" id="educationSection" style="display:none">
+          <h3>Education</h3>
+          <div id="education"></div>
+        </div>
+        <div class="section" id="skillsSection" style="display:none">
+          <h3>Skills</h3>
+          <div id="skills" class="skills-list"></div>
+        </div>
+        <div class="section" id="socialsSection" style="display:none">
+          <h3>Social Profiles</h3>
+          <div id="socials"></div>
+        </div>
+        <div class="section" id="sourcesSection">
+          <h3>Sources</h3>
+          <div id="sources"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DISCOVER TAB ===== -->
+    <div class="tab-panel" id="panel-discover">
+      <form class="discover-form" id="discoverForm">
+        <input type="text" name="industry" placeholder="Industry (e.g., AI, Fintech, HealthTech)" required>
+        <select name="stage">
+          <option value="">Any Stage</option>
+          <option value="Pre-seed">Pre-seed</option>
+          <option value="Seed">Seed</option>
+          <option value="Series A">Series A</option>
+          <option value="Series B">Series B</option>
+          <option value="Series C+">Series C+</option>
+        </select>
+        <input type="text" name="product" placeholder="Product type (e.g., Developer tools, SaaS)">
+        <input type="text" name="date_founded" placeholder="Founded (e.g., 2023, after 2020)">
+        <button type="submit" id="discoverBtn">Discover Founders</button>
+      </form>
+
+      <div class="loading" id="discoverLoading">
+        <div class="spinner"></div>
+        <p>Discovering founders and enriching profiles...</p>
+        <p style="color: #666; font-size: 13px; margin-top: 8px;">This may take 1-3 minutes for multiple founders</p>
+        <div class="progress-bar"><div class="progress-fill" id="discoverProgress"></div></div>
+        <p class="progress-text" id="discoverProgressText"></p>
       </div>
 
-      <div class="breakdown">
-        <h3>Category Breakdown</h3>
-        <div id="categories"></div>
+      <div class="error" id="discoverError"></div>
+
+      <div class="discover-results" id="discoverResults">
+        <div class="discover-header" id="discoverHeader"></div>
+        <div id="founderList"></div>
       </div>
 
-      <div class="section" id="thesisSection">
-        <h3>Thesis Fit</h3>
-        <p class="thesis-summary" id="thesisSummary"></p>
-      </div>
-
-      <div class="section" id="risksSection">
-        <h3>Key Risks</h3>
-        <div id="risks"></div>
-      </div>
-
-      <div class="section" id="linkedinSection" style="display:none">
-        <h3>LinkedIn Profile</h3>
-        <div id="linkedinHeadline" style="font-size:15px; font-weight:500; margin-bottom:4px;"></div>
-        <div id="linkedinMeta" style="font-size:13px; color:#888; margin-bottom:12px;"></div>
-        <div id="linkedinSummary" style="font-size:14px; line-height:1.5; color:#bbb; margin-bottom:16px;"></div>
-        <div id="linkedinLink"></div>
-      </div>
-
-      <div class="section" id="confidenceSection" style="display:none">
-        <h3>Match Confidence</h3>
-        <div id="confidence"></div>
-      </div>
-
-      <div class="section" id="experienceSection" style="display:none">
-        <h3>Work Experience</h3>
-        <div id="experience"></div>
-      </div>
-
-      <div class="section" id="educationSection" style="display:none">
-        <h3>Education</h3>
-        <div id="education"></div>
-      </div>
-
-      <div class="section" id="skillsSection" style="display:none">
-        <h3>Skills</h3>
-        <div id="skills" class="skills-list"></div>
-      </div>
-
-      <div class="section" id="socialsSection" style="display:none">
-        <h3>Social Profiles</h3>
-        <div id="socials"></div>
-      </div>
-
-      <div class="section" id="sourcesSection">
-        <h3>Sources</h3>
-        <div id="sources"></div>
+      <!-- Detail view for a single discovered founder -->
+      <div class="founder-detail" id="founderDetail">
+        <button class="back-btn" id="backBtn">Back to results</button>
+        <div class="card active" id="detailCard">
+          <div class="card-header">
+            <h2 id="detailName"></h2>
+            <div class="company" id="detailCompany"></div>
+          </div>
+          <div class="overall-score">
+            <div>
+              <div class="score-number" id="detailScore"></div>
+              <div class="score-label">Overall Score</div>
+            </div>
+            <div style="flex:1">
+              <div class="score-bar-outer">
+                <div class="score-bar-inner" id="detailBar"></div>
+              </div>
+            </div>
+          </div>
+          <div class="breakdown">
+            <h3>Category Breakdown</h3>
+            <div id="detailCategories"></div>
+          </div>
+          <div class="section" id="detailThesisSection">
+            <h3>Thesis Fit</h3>
+            <p class="thesis-summary" id="detailThesis"></p>
+          </div>
+          <div class="section" id="detailRisksSection">
+            <h3>Key Risks</h3>
+            <div id="detailRisks"></div>
+          </div>
+          <div class="section" id="detailExperienceSection" style="display:none">
+            <h3>Work Experience</h3>
+            <div id="detailExperience"></div>
+          </div>
+          <div class="section" id="detailEducationSection" style="display:none">
+            <h3>Education</h3>
+            <div id="detailEducation"></div>
+          </div>
+          <div class="section" id="detailSkillsSection" style="display:none">
+            <h3>Skills</h3>
+            <div id="detailSkills" class="skills-list"></div>
+          </div>
+          <div class="section" id="detailSourcesSection">
+            <h3>Sources</h3>
+            <div id="detailSources"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const form = document.getElementById('searchForm');
-    const loading = document.getElementById('loading');
-    const errorEl = document.getElementById('error');
-    const card = document.getElementById('card');
-    const submitBtn = document.getElementById('submitBtn');
+    // --- Tab switching ---
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // --- Helpers ---
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+    function scoreColor(score) {
+      if (score >= 70) return 'green';
+      if (score >= 45) return 'yellow';
+      return 'red';
+    }
+    function renderCategory(name, weight, score, rationale) {
+      const color = scoreColor(score);
+      return `<div class="category">
+        <div class="cat-header">
+          <span class="cat-name">${name} (${weight})</span>
+          <span class="cat-score score-${color}">${score}</span>
+        </div>
+        <div class="cat-bar-outer">
+          <div class="cat-bar-inner bar-${color}" style="width: ${score}%"></div>
+        </div>
+        <div class="cat-rationale">${esc(rationale)}</div>
+      </div>`;
+    }
 
     // --- LinkedIn OAuth ---
     const linkedinBar = document.getElementById('linkedinBar');
     const linkedinStatus = document.getElementById('linkedinStatus');
     const linkedinBtn = document.getElementById('linkedinBtn');
-
     async function checkLinkedIn() {
       try {
         const resp = await fetch('/api/linkedin/status');
         const data = await resp.json();
-        if (!data.configured) {
-          linkedinBar.style.display = 'none';
-          return;
-        }
+        if (!data.configured) { linkedinBar.style.display = 'none'; return; }
         linkedinBar.style.display = 'flex';
         if (data.connected && data.profile) {
-          linkedinStatus.textContent = `LinkedIn connected: ${data.profile.name || data.profile.email || 'Connected'}`;
+          linkedinStatus.textContent = `LinkedIn connected: ${data.profile.name || 'Connected'}`;
           linkedinStatus.style.color = '#4ade80';
           linkedinBtn.textContent = 'Disconnect';
           linkedinBtn.style.background = '#333';
@@ -214,210 +362,142 @@
           linkedinBtn.style.background = '#0a66c2';
           linkedinBtn.onclick = connectLinkedIn;
         }
-      } catch (e) {
-        linkedinBar.style.display = 'none';
-      }
+      } catch (e) { linkedinBar.style.display = 'none'; }
     }
-
     function connectLinkedIn() {
-      const w = window.open('/api/linkedin/connect', 'linkedin_oauth', 'width=600,height=700');
+      window.open('/api/linkedin/connect', 'linkedin_oauth', 'width=600,height=700');
       window.addEventListener('message', function handler(evt) {
-        if (evt.data?.type === 'linkedin_connected') {
-          window.removeEventListener('message', handler);
-          checkLinkedIn();
-        }
+        if (evt.data?.type === 'linkedin_connected') { window.removeEventListener('message', handler); checkLinkedIn(); }
       });
     }
-
-    async function disconnectLinkedIn() {
-      await fetch('/api/linkedin/disconnect');
-      checkLinkedIn();
-    }
-
-    // Check LinkedIn status on page load
+    async function disconnectLinkedIn() { await fetch('/api/linkedin/disconnect'); checkLinkedIn(); }
     checkLinkedIn();
 
-    function esc(s) {
-      const d = document.createElement('div');
-      d.textContent = s || '';
-      return d.innerHTML;
-    }
+    // ===== SCORE TAB =====
+    const form = document.getElementById('searchForm');
+    const loading = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const card = document.getElementById('card');
+    const submitBtn = document.getElementById('submitBtn');
 
-    function scoreColor(score) {
-      if (score >= 70) return 'green';
-      if (score >= 45) return 'yellow';
-      return 'red';
-    }
+    function renderScoreCard(data, enrichment, li) {
+      const b = data.breakdown;
+      const color = scoreColor(data.overall_score);
+      document.getElementById('founderName').textContent = data.name;
+      document.getElementById('founderCompany').textContent = data.company || '';
+      const scoreEl = document.getElementById('overallScore');
+      scoreEl.textContent = Math.round(data.overall_score);
+      scoreEl.className = `score-number score-${color}`;
+      const bar = document.getElementById('overallBar');
+      bar.style.width = `${data.overall_score}%`;
+      bar.className = `score-bar-inner bar-${color}`;
+      document.getElementById('categories').innerHTML = [
+        renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
+        renderCategory('Market', '25%', b.market, b.market_rationale),
+        renderCategory('Traction', '25%', b.traction, b.traction_rationale),
+        renderCategory('Network', '10%', b.network, b.network_rationale),
+        renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
+      ].join('');
+      document.getElementById('thesisSummary').textContent = data.thesis_fit_summary || 'N/A';
+      document.getElementById('risks').innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${esc(r)}</div>`).join('');
+      document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
 
-    function renderCategory(name, weight, score, rationale) {
-      const color = scoreColor(score);
-      return `
-        <div class="category">
-          <div class="cat-header">
-            <span class="cat-name">${name} (${weight})</span>
-            <span class="cat-score score-${color}">${score}</span>
-          </div>
-          <div class="cat-bar-outer">
-            <div class="cat-bar-inner bar-${color}" style="width: ${score}%"></div>
-          </div>
-          <div class="cat-rationale">${rationale}</div>
-        </div>
-      `;
+      // LinkedIn
+      const liSection = document.getElementById('linkedinSection');
+      if (li) {
+        if (li.headline) document.getElementById('linkedinHeadline').textContent = li.headline;
+        const metaParts = [];
+        if (li.location) metaParts.push(li.location);
+        if (li.followers) metaParts.push(`${li.followers.toLocaleString()} followers`);
+        if (li.connections) metaParts.push(`${li.connections.toLocaleString()} connections`);
+        document.getElementById('linkedinMeta').textContent = metaParts.join(' · ');
+        if (li.summary) document.getElementById('linkedinSummary').textContent = li.summary.slice(0, 500);
+        if (li.profile_url) document.getElementById('linkedinLink').innerHTML = `<a class="social-link" href="${esc(li.profile_url)}" target="_blank" rel="noopener">View LinkedIn Profile</a>`;
+        liSection.style.display = '';
+      } else { liSection.style.display = 'none'; }
+
+      // Experience
+      const allExperience = (li?.experience?.length ? li.experience : enrichment?.experience) || [];
+      const expSection = document.getElementById('experienceSection');
+      if (allExperience.length) {
+        document.getElementById('experience').innerHTML = allExperience.map(exp =>
+          `<div class="exp-item"><div class="exp-title">${esc(exp.title || 'Unknown Role')}</div><div class="exp-company">${esc(exp.company || '')}</div><div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div></div>`
+        ).join('');
+        expSection.style.display = '';
+      } else { expSection.style.display = 'none'; }
+
+      // Education
+      const allEducation = (li?.education?.length ? li.education : enrichment?.education) || [];
+      const eduSection = document.getElementById('educationSection');
+      if (allEducation.length) {
+        document.getElementById('education').innerHTML = allEducation.map(edu => {
+          const degree = [edu.degree, edu.field || edu.major].filter(Boolean).join(' in ');
+          return `<div class="edu-item"><div class="edu-school">${esc(edu.school || '')}</div>${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}</div>`;
+        }).join('');
+        eduSection.style.display = '';
+      } else { eduSection.style.display = 'none'; }
+
+      // Skills
+      const allSkills = [...new Set([...(li?.skills || []), ...(enrichment?.skills || [])])];
+      const skillsSection = document.getElementById('skillsSection');
+      if (allSkills.length) {
+        document.getElementById('skills').innerHTML = allSkills.map(s => `<span class="skill-tag">${esc(s)}</span>`).join('');
+        skillsSection.style.display = '';
+      } else { skillsSection.style.display = 'none'; }
+
+      // Confidence
+      const confSection = document.getElementById('confidenceSection');
+      if (enrichment?.likelihood > 0) {
+        const l = enrichment.likelihood;
+        const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
+        document.getElementById('confidence').innerHTML = `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>`;
+        confSection.style.display = '';
+      } else { confSection.style.display = 'none'; }
+
+      // Social profiles
+      const socials = [...(enrichment?.social_profiles || [])];
+      if (enrichment?.linkedin_url) socials.unshift(enrichment.linkedin_url);
+      if (li?.profile_url) socials.unshift(li.profile_url);
+      const uniqueSocials = [...new Set(socials)];
+      const socialsSection = document.getElementById('socialsSection');
+      if (uniqueSocials.length) {
+        document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
+          let label = 'Link';
+          if (url.includes('linkedin')) label = 'LinkedIn';
+          else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
+          else if (url.includes('github')) label = 'GitHub';
+          return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
+        }).join('');
+        socialsSection.style.display = '';
+      } else { socialsSection.style.display = 'none'; }
+
+      // Sources
+      const sourcesEl = document.getElementById('sources');
+      sourcesEl.innerHTML = (data.source_links || []).map(s => `<a class="source-link" href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`).join('');
+      document.getElementById('sourcesSection').style.display = data.source_links?.length ? '' : 'none';
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = form.name.value.trim();
       const company = form.company.value.trim();
-
       if (!name) return;
-
       loading.classList.add('active');
       card.classList.remove('active');
       errorEl.style.display = 'none';
       submitBtn.disabled = true;
-
       try {
         const resp = await fetch('/api/score', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, company: company || null }),
         });
-
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({ detail: 'Request failed' }));
           throw new Error(err.detail || `Error ${resp.status}`);
         }
-
         const resp_data = await resp.json();
-        const data = resp_data.card;
-        const enrichment = resp_data.enrichment;
-        const b = data.breakdown;
-        const color = scoreColor(data.overall_score);
-
-        document.getElementById('founderName').textContent = data.name;
-        document.getElementById('founderCompany').textContent = data.company || '';
-
-        const scoreEl = document.getElementById('overallScore');
-        scoreEl.textContent = Math.round(data.overall_score);
-        scoreEl.className = `score-number score-${color}`;
-
-        const bar = document.getElementById('overallBar');
-        bar.style.width = `${data.overall_score}%`;
-        bar.className = `score-bar-inner bar-${color}`;
-
-        document.getElementById('categories').innerHTML = [
-          renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
-          renderCategory('Market', '25%', b.market, b.market_rationale),
-          renderCategory('Traction', '25%', b.traction, b.traction_rationale),
-          renderCategory('Network', '10%', b.network, b.network_rationale),
-          renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
-        ].join('');
-
-        document.getElementById('thesisSummary').textContent = data.thesis_fit_summary || 'N/A';
-
-        const risksEl = document.getElementById('risks');
-        risksEl.innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${r}</div>`).join('');
-        document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
-
-        // Enrichment data: merge LinkedIn (RapidAPI) + PDL
-        const li = resp_data.linkedin;  // LinkedInData from RapidAPI
-        const confSection = document.getElementById('confidenceSection');
-        const expSection = document.getElementById('experienceSection');
-        const eduSection = document.getElementById('educationSection');
-        const skillsSection = document.getElementById('skillsSection');
-        const socialsSection = document.getElementById('socialsSection');
-        const liSection = document.getElementById('linkedinSection');
-
-        // --- LinkedIn profile card ---
-        if (li) {
-          if (li.headline) document.getElementById('linkedinHeadline').textContent = li.headline;
-          const metaParts = [];
-          if (li.location) metaParts.push(li.location);
-          if (li.followers) metaParts.push(`${li.followers.toLocaleString()} followers`);
-          if (li.connections) metaParts.push(`${li.connections.toLocaleString()} connections`);
-          document.getElementById('linkedinMeta').textContent = metaParts.join(' · ');
-          if (li.summary) {
-            document.getElementById('linkedinSummary').textContent = li.summary.slice(0, 500);
-          }
-          if (li.profile_url) {
-            document.getElementById('linkedinLink').innerHTML =
-              `<a class="social-link" href="${esc(li.profile_url)}" target="_blank" rel="noopener">View LinkedIn Profile</a>`;
-          }
-          liSection.style.display = '';
-        } else { liSection.style.display = 'none'; }
-
-        // --- Merge experience: prefer LinkedIn, fall back to PDL ---
-        const allExperience = (li?.experience?.length ? li.experience : enrichment?.experience) || [];
-        if (allExperience.length) {
-          document.getElementById('experience').innerHTML = allExperience.map(exp =>
-            `<div class="exp-item">
-              <div class="exp-title">${esc(exp.title || 'Unknown Role')}</div>
-              <div class="exp-company">${esc(exp.company || 'Unknown Company')}</div>
-              <div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div>
-              ${exp.description ? `<div style="font-size:13px;color:#999;margin-top:4px">${esc(exp.description)}</div>` : ''}
-            </div>`
-          ).join('');
-          expSection.style.display = '';
-        } else { expSection.style.display = 'none'; }
-
-        // --- Merge education: prefer LinkedIn, fall back to PDL ---
-        const allEducation = (li?.education?.length ? li.education : enrichment?.education) || [];
-        if (allEducation.length) {
-          document.getElementById('education').innerHTML = allEducation.map(edu => {
-            const degree = [edu.degree, edu.field || edu.major].filter(Boolean).join(' in ');
-            const dates = [edu.start_date, edu.end_date].filter(Boolean).join(' — ');
-            return `<div class="edu-item">
-              <div class="edu-school">${esc(edu.school || 'Unknown School')}</div>
-              ${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}
-              ${dates ? `<div style="font-size:13px;color:#888">${esc(dates)}</div>` : ''}
-            </div>`;
-          }).join('');
-          eduSection.style.display = '';
-        } else { eduSection.style.display = 'none'; }
-
-        // --- Merge skills: combine LinkedIn + PDL, deduplicate ---
-        const allSkills = [...new Set([...(li?.skills || []), ...(enrichment?.skills || [])])];
-        if (allSkills.length) {
-          document.getElementById('skills').innerHTML = allSkills.map(s =>
-            `<span class="skill-tag">${esc(s)}</span>`
-          ).join('');
-          skillsSection.style.display = '';
-        } else { skillsSection.style.display = 'none'; }
-
-        // --- Match confidence (PDL) ---
-        if (enrichment?.likelihood > 0) {
-          const l = enrichment.likelihood;
-          const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
-          document.getElementById('confidence').innerHTML =
-            `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>
-             <span style="color:#888;font-size:13px;margin-left:12px">How likely this data matches the queried person</span>`;
-          confSection.style.display = '';
-        } else { confSection.style.display = 'none'; }
-
-        // --- Social profiles: merge all sources ---
-        const socials = [...(enrichment?.social_profiles || [])];
-        if (enrichment?.linkedin_url) socials.unshift(enrichment.linkedin_url);
-        if (li?.profile_url) socials.unshift(li.profile_url);
-        const uniqueSocials = [...new Set(socials)];
-        if (uniqueSocials.length) {
-          document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
-            let label = 'Link';
-            if (url.includes('linkedin')) label = 'LinkedIn';
-            else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
-            else if (url.includes('github')) label = 'GitHub';
-            else if (url.includes('facebook')) label = 'Facebook';
-            return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
-          }).join('');
-          socialsSection.style.display = '';
-        } else { socialsSection.style.display = 'none'; }
-
-        const sourcesEl = document.getElementById('sources');
-        sourcesEl.innerHTML = (data.source_links || []).map(s =>
-          `<a class="source-link" href="${s}" target="_blank" rel="noopener">${s}</a>`
-        ).join('');
-        document.getElementById('sourcesSection').style.display = data.source_links?.length ? '' : 'none';
-
+        renderScoreCard(resp_data.card, resp_data.enrichment, resp_data.linkedin);
         card.classList.add('active');
       } catch (err) {
         errorEl.textContent = err.message;
@@ -425,6 +505,156 @@
       } finally {
         loading.classList.remove('active');
         submitBtn.disabled = false;
+      }
+    });
+
+    // ===== DISCOVER TAB =====
+    const discoverForm = document.getElementById('discoverForm');
+    const discoverLoading = document.getElementById('discoverLoading');
+    const discoverError = document.getElementById('discoverError');
+    const discoverResults = document.getElementById('discoverResults');
+    const founderList = document.getElementById('founderList');
+    const founderDetail = document.getElementById('founderDetail');
+    const discoverBtn = document.getElementById('discoverBtn');
+
+    let discoveredFounders = [];
+
+    function showFounderDetail(idx) {
+      const f = discoveredFounders[idx];
+      if (!f || !f.card) return;
+      discoverResults.classList.remove('active');
+      founderDetail.classList.add('active');
+
+      const data = f.card;
+      const b = data.breakdown;
+      const color = scoreColor(data.overall_score);
+
+      document.getElementById('detailName').textContent = f.name + (f.role ? ` — ${f.role}` : '');
+      document.getElementById('detailCompany').textContent = f.company || '';
+      const ds = document.getElementById('detailScore');
+      ds.textContent = Math.round(data.overall_score);
+      ds.className = `score-number score-${color}`;
+      const db = document.getElementById('detailBar');
+      db.style.width = `${data.overall_score}%`;
+      db.className = `score-bar-inner bar-${color}`;
+      document.getElementById('detailCategories').innerHTML = [
+        renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
+        renderCategory('Market', '25%', b.market, b.market_rationale),
+        renderCategory('Traction', '25%', b.traction, b.traction_rationale),
+        renderCategory('Network', '10%', b.network, b.network_rationale),
+        renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
+      ].join('');
+      document.getElementById('detailThesis').textContent = data.thesis_fit_summary || 'N/A';
+      document.getElementById('detailRisks').innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${esc(r)}</div>`).join('');
+      document.getElementById('detailRisksSection').style.display = data.key_risks?.length ? '' : 'none';
+
+      // Experience
+      const exp = (f.linkedin?.experience?.length ? f.linkedin.experience : f.enrichment?.experience) || [];
+      const des = document.getElementById('detailExperienceSection');
+      if (exp.length) {
+        document.getElementById('detailExperience').innerHTML = exp.map(e =>
+          `<div class="exp-item"><div class="exp-title">${esc(e.title || '')}</div><div class="exp-company">${esc(e.company || '')}</div><div class="exp-dates">${esc(e.start_date || '?')} — ${esc(e.end_date || 'Present')}</div></div>`
+        ).join('');
+        des.style.display = '';
+      } else { des.style.display = 'none'; }
+
+      // Education
+      const edu = (f.linkedin?.education?.length ? f.linkedin.education : f.enrichment?.education) || [];
+      const edes = document.getElementById('detailEducationSection');
+      if (edu.length) {
+        document.getElementById('detailEducation').innerHTML = edu.map(e => {
+          const deg = [e.degree, e.field || e.major].filter(Boolean).join(' in ');
+          return `<div class="edu-item"><div class="edu-school">${esc(e.school || '')}</div>${deg ? `<div class="edu-degree">${esc(deg)}</div>` : ''}</div>`;
+        }).join('');
+        edes.style.display = '';
+      } else { edes.style.display = 'none'; }
+
+      // Skills
+      const skills = [...new Set([...(f.linkedin?.skills || []), ...(f.enrichment?.skills || [])])];
+      const sdes = document.getElementById('detailSkillsSection');
+      if (skills.length) {
+        document.getElementById('detailSkills').innerHTML = skills.map(s => `<span class="skill-tag">${esc(s)}</span>`).join('');
+        sdes.style.display = '';
+      } else { sdes.style.display = 'none'; }
+
+      // Sources
+      document.getElementById('detailSources').innerHTML = (data.source_links || []).map(s =>
+        `<a class="source-link" href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`
+      ).join('');
+    }
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      founderDetail.classList.remove('active');
+      discoverResults.classList.add('active');
+    });
+
+    discoverForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const industry = discoverForm.industry.value.trim();
+      if (!industry) return;
+
+      const stage = discoverForm.stage.value;
+      const product = discoverForm.product.value.trim();
+      const date_founded = discoverForm.date_founded.value.trim();
+
+      discoverLoading.classList.add('active');
+      discoverResults.classList.remove('active');
+      founderDetail.classList.remove('active');
+      discoverError.style.display = 'none';
+      discoverBtn.disabled = true;
+      document.getElementById('discoverProgress').style.width = '10%';
+      document.getElementById('discoverProgressText').textContent = 'Searching for founders...';
+
+      try {
+        const resp = await fetch('/api/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            industry,
+            stage: stage || null,
+            product: product || null,
+            date_founded: date_founded || null,
+          }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: 'Discovery failed' }));
+          throw new Error(err.detail || `Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        discoveredFounders = data.founders;
+
+        document.getElementById('discoverHeader').innerHTML =
+          `Found <span>${data.founders.length}</span> founders for: <span>${esc(data.query)}</span>`;
+
+        founderList.innerHTML = data.founders.map((f, i) => {
+          if (f.error) {
+            return `<div class="founder-row">
+              <div class="rank">${i + 1}</div>
+              <div class="info"><div class="fname">${esc(f.name)}</div><div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div></div>
+              <div class="ferror">${esc(f.error)}</div>
+            </div>`;
+          }
+          const score = f.card ? Math.round(f.card.overall_score) : '?';
+          const color = f.card ? scoreColor(f.card.overall_score) : 'red';
+          return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
+            <div class="rank">${i + 1}</div>
+            <div class="info">
+              <div class="fname">${esc(f.name)}</div>
+              <div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div>
+            </div>
+            <div class="fscore score-${color}">${score}</div>
+          </div>`;
+        }).join('');
+
+        discoverResults.classList.add('active');
+      } catch (err) {
+        discoverError.textContent = err.message;
+        discoverError.style.display = 'block';
+      } finally {
+        discoverLoading.classList.remove('active');
+        discoverBtn.disabled = false;
       }
     });
   </script>
