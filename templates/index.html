@@ -116,6 +116,27 @@
     .founder-row .info .fmeta { font-size: 13px; color: #888; margin-top: 2px; }
     .founder-row .fscore { font-size: 24px; font-weight: 700; min-width: 50px; text-align: right; }
     .founder-row .ferror { font-size: 13px; color: #f87171; }
+    .source-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .source-yc { background: #f97316; color: #fff; }
+    .source-linkedin { background: #0a66c2; color: #fff; }
+    .source-crunchbase { background: #0288d1; color: #fff; }
+    .source-twitter { background: #1d9bf0; color: #fff; }
+    .source-wellfound { background: #000; color: #fff; border: 1px solid #333; }
+    .source-producthunt { background: #da552f; color: #fff; }
+    .source-ondeck { background: #6366f1; color: #fff; }
+    .source-ef { background: #10b981; color: #fff; }
+    .source-techstars { background: #00a4e4; color: #fff; }
+    .source-substack { background: #ff6719; color: #fff; }
+    .source-buildspace { background: #8b5cf6; color: #fff; }
+    .source-pioneer { background: #facc15; color: #000; }
+    .source-default { background: #374151; color: #d1d5db; }
+    .source-filters { margin-bottom: 16px; }
+    .source-filters summary { font-size: 13px; color: #888; cursor: pointer; margin-bottom: 8px; }
+    .source-filters summary:hover { color: #ccc; }
+    .source-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; }
+    .source-checkboxes label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #ccc; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
+    .source-checkboxes label:hover { background: #262626; }
+    .source-checkboxes input[type="checkbox"] { accent-color: #2563eb; }
     .founder-detail { display: none; margin-top: 16px; }
     .founder-detail.active { display: block; }
     .back-btn { background: none; border: 1px solid #333; color: #888; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 16px; }
@@ -235,6 +256,13 @@
         <input type="text" name="date_founded" placeholder="Founded (e.g., 2023, after 2020)">
         <button type="submit" id="discoverBtn">Discover Founders</button>
       </form>
+
+      <details class="source-filters" id="sourceFilters">
+        <summary>Sources (click to customize)</summary>
+        <div class="source-checkboxes" id="sourceCheckboxes">
+          <!-- Populated by JS -->
+        </div>
+      </details>
 
       <div class="loading" id="discoverLoading">
         <div class="spinner"></div>
@@ -519,6 +547,27 @@
 
     let discoveredFounders = [];
 
+    // --- Load source checkboxes ---
+    const defaultSources = ['yc', 'linkedin', 'crunchbase', 'twitter', 'wellfound', 'producthunt'];
+    const sourceColors = {yc:'yc',linkedin:'linkedin',crunchbase:'crunchbase',twitter:'twitter',wellfound:'wellfound',producthunt:'producthunt',ondeck:'ondeck',ef:'ef',techstars:'techstars',substack:'substack',buildspace:'buildspace',pioneer:'pioneer'};
+
+    function sourceBadgeClass(label) {
+      const key = Object.entries(sourceColors).find(([k]) => label.toLowerCase().includes(k));
+      return key ? 'source-' + key[0] : 'source-default';
+    }
+
+    (async function loadSources() {
+      try {
+        const resp = await fetch('/api/sources');
+        const sources = await resp.json();
+        const container = document.getElementById('sourceCheckboxes');
+        container.innerHTML = sources.map(s => {
+          const checked = defaultSources.includes(s.key) ? 'checked' : '';
+          return `<label><input type="checkbox" value="${esc(s.key)}" ${checked}> ${esc(s.label)}</label>`;
+        }).join('');
+      } catch(e) {}
+    })();
+
     function showFounderDetail(idx) {
       const f = discoveredFounders[idx];
       if (!f || !f.card) return;
@@ -529,7 +578,8 @@
       const b = data.breakdown;
       const color = scoreColor(data.overall_score);
 
-      document.getElementById('detailName').textContent = f.name + (f.role ? ` — ${f.role}` : '');
+      const detailBadge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}" style="font-size:12px;vertical-align:middle;margin-left:8px">${esc(f.source)}</span>` : '';
+      document.getElementById('detailName').innerHTML = esc(f.name) + (f.role ? ` — ${esc(f.role)}` : '') + detailBadge;
       document.getElementById('detailCompany').textContent = f.company || '';
       const ds = document.getElementById('detailScore');
       ds.textContent = Math.round(data.overall_score);
@@ -577,8 +627,10 @@
         sdes.style.display = '';
       } else { sdes.style.display = 'none'; }
 
-      // Sources
-      document.getElementById('detailSources').innerHTML = (data.source_links || []).map(s =>
+      // Sources — include discovery source URL + score card source_links
+      const detailSourceLinks = [...(data.source_links || [])];
+      if (f.url && !detailSourceLinks.includes(f.url)) detailSourceLinks.unshift(f.url);
+      document.getElementById('detailSources').innerHTML = detailSourceLinks.map(s =>
         `<a class="source-link" href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`
       ).join('');
     }
@@ -605,6 +657,11 @@
       document.getElementById('discoverProgress').style.width = '10%';
       document.getElementById('discoverProgressText').textContent = 'Searching for founders...';
 
+      // Collect selected sources
+      const selectedSources = Array.from(
+        document.querySelectorAll('#sourceCheckboxes input[type="checkbox"]:checked')
+      ).map(cb => cb.value);
+
       try {
         const resp = await fetch('/api/discover', {
           method: 'POST',
@@ -614,6 +671,7 @@
             stage: stage || null,
             product: product || null,
             date_founded: date_founded || null,
+            sources: selectedSources.length ? selectedSources : null,
           }),
         });
 
@@ -629,10 +687,11 @@
           `Found <span>${data.founders.length}</span> founders for: <span>${esc(data.query)}</span>`;
 
         founderList.innerHTML = data.founders.map((f, i) => {
+          const badge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}">${esc(f.source)}</span>` : '';
           if (f.error) {
             return `<div class="founder-row">
               <div class="rank">${i + 1}</div>
-              <div class="info"><div class="fname">${esc(f.name)}</div><div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div></div>
+              <div class="info"><div class="fname">${badge}${esc(f.name)}</div><div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div></div>
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
           }
@@ -641,7 +700,7 @@
           return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
             <div class="rank">${i + 1}</div>
             <div class="info">
-              <div class="fname">${esc(f.name)}</div>
+              <div class="fname">${badge}${esc(f.name)}</div>
               <div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div>
             </div>
             <div class="fscore score-${color}">${score}</div>

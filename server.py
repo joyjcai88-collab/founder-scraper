@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
-from analyzer.discovery import discover_founders
+from analyzer.discovery import discover_founders, get_available_sources
 from analyzer.enricher import enrich_founder
 from analyzer.scorer import score_founder
 from models.founder import FounderCard, LinkedInData, PDLData
@@ -44,12 +44,15 @@ class DiscoverRequest(BaseModel):
     product: Optional[str] = None
     date_founded: Optional[str] = None
     limit: int = Field(default=10, ge=1, le=25)
+    sources: Optional[List[str]] = None
 
 
 class FounderResult(BaseModel):
     name: str
     company: Optional[str] = None
     role: Optional[str] = None
+    source: Optional[str] = None
+    url: Optional[str] = None
     card: Optional[FounderCard] = None
     enrichment: Optional[PDLData] = None
     linkedin: Optional[LinkedInData] = None
@@ -180,13 +183,14 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         parts.append(f"founded {sanitize_input(req.date_founded)}")
     query_summary = " / ".join(parts)
 
-    # Discover founders via Perplexity
+    # Discover founders via multi-source search
     raw_founders = await discover_founders(
         industry=req.industry,
         stage=req.stage,
         product=req.product,
         date_founded=req.date_founded,
         limit=req.limit,
+        sources=req.sources,
     )
 
     if not raw_founders:
@@ -197,6 +201,8 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         name = sanitize_input(entry.get("name", ""))
         company = sanitize_input(entry.get("company", "")) or None
         role = entry.get("role", "")
+        source = entry.get("source", "")
+        url = entry.get("url", "")
         if not name:
             return FounderResult(name="Unknown", error="No name returned")
         try:
@@ -209,13 +215,16 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 name=name,
                 company=company,
                 role=role,
+                source=source,
+                url=url,
                 card=card,
                 enrichment=profile.pdl,
                 linkedin=profile.linkedin,
             )
         except Exception as e:
             return FounderResult(
-                name=name, company=company, role=role, error=str(e)
+                name=name, company=company, role=role,
+                source=source, url=url, error=str(e),
             )
 
     results = await asyncio.gather(*[_process_one(f) for f in raw_founders])
@@ -228,6 +237,12 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
     )
 
     return DiscoverResponse(query=query_summary, founders=scored)
+
+
+@app.get("/api/sources")
+async def api_sources():
+    """Return available discovery sources."""
+    return get_available_sources()
 
 
 def _sync_score(profile):
