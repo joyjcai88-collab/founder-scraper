@@ -1,16 +1,16 @@
-"""Discovery engine: find founders by company criteria using Perplexity AI."""
+"""Discovery engine: find founders by searching LinkedIn via DuckDuckGo.
+
+No API key needed — uses the ddgs package to search for LinkedIn profiles
+matching criteria like industry, stage, product, and founding date.
+Parses names, companies, and roles from LinkedIn result titles.
+"""
 
 from __future__ import annotations
 
-import json
-import os
+import re
 from typing import Dict, List, Optional
 
-import httpx
-
 from scraper.safety import sanitize_input
-
-PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions"
 
 
 async def discover_founders(
@@ -20,93 +20,106 @@ async def discover_founders(
     date_founded: Optional[str] = None,
     limit: int = 10,
 ) -> List[Dict[str, str]]:
-    """Search for founders matching company criteria via Perplexity AI.
+    """Search LinkedIn via DuckDuckGo for founders matching company criteria.
 
     Returns a list of dicts: [{"name": "...", "company": "...", "role": "..."}]
     """
-    api_key = os.getenv("PERPLEXITY_API_KEY")
-    if not api_key:
-        return []
-
-    # Build a natural language query from the filters
-    parts = [f"in the {sanitize_input(industry)} industry"]
+    query_parts = ["site:linkedin.com/in", sanitize_input(industry)]
     if stage:
-        parts.append(f"at {sanitize_input(stage)} stage")
+        query_parts.append(sanitize_input(stage))
     if product:
-        parts.append(f"building {sanitize_input(product)} products")
+        query_parts.append(sanitize_input(product))
     if date_founded:
-        parts.append(f"founded {sanitize_input(date_founded)}")
+        query_parts.append(f"founded {sanitize_input(date_founded)}")
+    query_parts.append("founder OR CEO OR co-founder")
 
-    criteria = ", ".join(parts)
-
-    prompt = (
-        f"Find {limit} startup founders/CEOs {criteria}. "
-        f"For each founder, provide their full name, company name, and title/role. "
-        f"Focus on real, verifiable founders of active startups. "
-        f"Return ONLY a JSON array with objects containing: "
-        f'"name" (full name), "company" (company name), "role" (their title). '
-        f"No markdown, no explanation — just the JSON array."
-    )
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "model": "sonar",
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You are a startup research assistant. Return ONLY valid JSON arrays "
-                    "when asked for founder lists. No markdown code fences, no explanation. "
-                    "Each object must have: name, company, role."
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        "max_tokens": 2048,
-        "return_citations": True,
-    }
+    query = " ".join(query_parts)
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                PERPLEXITY_API_URL, headers=headers, json=payload
-            )
-            resp.raise_for_status()
-            data = resp.json()
-
-        content = (
-            data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        )
-        if not content:
+        from ddgs import DDGS
+        raw_results = list(DDGS().text(query, max_results=limit * 2))
+    except Exception:
+        try:
+            from duckduckgo_search import DDGS
+            raw_results = list(DDGS().text(query, max_results=limit * 2))
+        except Exception:
             return []
 
-        # Strip markdown code fences if present
-        content = content.strip()
-        if content.startswith("```"):
-            content = content.split("\n", 1)[-1]
-        if content.endswith("```"):
-            content = content.rsplit("```", 1)[0]
-        content = content.strip()
+    results: List[Dict[str, str]] = []
+    seen: set = set()
 
-        founders = json.loads(content)
-        if not isinstance(founders, list):
-            return []
+    for item in raw_results:
+        href = item.get("href", "")
+        title = item.get("title", "")
 
-        # Validate and clean each entry
-        results = []
-        for f in founders[:limit]:
-            if isinstance(f, dict) and f.get("name"):
-                results.append({
-                    "name": str(f.get("name", "")),
-                    "company": str(f.get("company", "")),
-                    "role": str(f.get("role", "")),
-                })
+        # Only process LinkedIn profile URLs
+        if "linkedin.com/in/" not in href:
+            continue
 
-        return results
+        # Extract slug to deduplicate
+        slug_match = re.search(r'linkedin\.com/in/([a-zA-Z0-9_-]+)', href)
+        if not slug_match:
+            continue
+        slug = slug_match.group(1)
+        if slug in seen or slug in ("login", "signup", "feed"):
+            continue
+        seen.add(slug)
 
-    except (json.JSONDecodeError, httpx.HTTPError, KeyError):
-        return []
+        # Parse title: "Name - Role | LinkedIn" or "Name - Role - Company | LinkedIn"
+        parsed = _parse_linkedin_title(title)
+        if not parsed["name"]:
+            continue
+
+        results.append(parsed)
+        if len(results) >= limit:
+            break
+
+    return results
+
+
+def _parse_linkedin_title(title: str) -> Dict[str, str]:
+    """Parse a LinkedIn search result title into name, role, company."""
+    # Remove " | LinkedIn" or " - LinkedIn" suffix
+    title = re.sub(r'\s*[\|·\-]\s*LinkedIn\s*$', '', title, flags=re.IGNORECASE).strip()
+
+    # Remove "..." truncation markers
+    title = re.sub(r'\s*\.{3,}\s*', ' ', title).strip()
+
+    name = ""
+    role = ""
+    company = ""
+
+    # Split by " - " delimiter
+    parts = [p.strip() for p in title.split(' - ') if p.strip()]
+
+    if len(parts) >= 3:
+        name = parts[0]
+        role = parts[1]
+        company = parts[2]
+    elif len(parts) == 2:
+        name = parts[0]
+        second = parts[1]
+        # Check for "Role at Company" or "Role | Company"
+        at_match = re.match(r'(.+?)\s+(?:at|@)\s+(.+)', second, re.IGNORECASE)
+        pipe_match = re.match(r'(.+?)\s*\|\s*(.+)', second)
+        if at_match:
+            role = at_match.group(1).strip()
+            company = at_match.group(2).strip()
+        elif pipe_match:
+            role = pipe_match.group(1).strip()
+            company = pipe_match.group(2).strip()
+        else:
+            role = second
+    elif len(parts) == 1:
+        name = parts[0]
+
+    # Clean up: remove extra whitespace
+    name = re.sub(r'\s+', ' ', name).strip()
+    role = re.sub(r'\s+', ' ', role).strip()
+    company = re.sub(r'\s+', ' ', company).strip()
+
+    return {
+        "name": name,
+        "company": company,
+        "role": role or "Founder",
+    }
