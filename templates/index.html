@@ -578,9 +578,9 @@
       const b = data.breakdown;
       const color = scoreColor(data.overall_score);
 
-      const detailBadge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}" style="font-size:12px;vertical-align:middle;margin-left:8px">${esc(f.source)}</span>` : '';
-      document.getElementById('detailName').innerHTML = esc(f.name) + (f.role ? ` — ${esc(f.role)}` : '') + detailBadge;
-      document.getElementById('detailCompany').textContent = f.company || '';
+      document.getElementById('detailName').textContent = f.name;
+      const detailBadge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}" style="margin-left:8px">${esc(f.source)}</span>` : '';
+      document.getElementById('detailCompany').innerHTML = (f.role ? esc(f.role) : '') + (f.company ? (f.role ? ' at ' : '') + esc(f.company) : '') + detailBadge;
       const ds = document.getElementById('detailScore');
       ds.textContent = Math.round(data.overall_score);
       ds.className = `score-number score-${color}`;
@@ -688,10 +688,13 @@
 
         founderList.innerHTML = data.founders.map((f, i) => {
           const badge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}">${esc(f.source)}</span>` : '';
+          const roleLine = f.role ? esc(f.role) : '';
+          const companyLine = f.company ? esc(f.company) : '';
+          const meta = [roleLine, companyLine].filter(Boolean).join(' at ');
           if (f.error) {
             return `<div class="founder-row">
               <div class="rank">${i + 1}</div>
-              <div class="info"><div class="fname">${badge}${esc(f.name)}</div><div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div></div>
+              <div class="info"><div class="fname">${esc(f.name)}</div><div class="fmeta">${meta}</div><div class="fmeta" style="margin-top:4px">${badge}</div></div>
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
           }
@@ -700,8 +703,9 @@
           return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
             <div class="rank">${i + 1}</div>
             <div class="info">
-              <div class="fname">${badge}${esc(f.name)}</div>
-              <div class="fmeta">${esc(f.company || '')} ${f.role ? '· ' + esc(f.role) : ''}</div>
+              <div class="fname">${esc(f.name)}</div>
+              <div class="fmeta">${meta}</div>
+              <div class="fmeta" style="margin-top:4px">${badge}</div>
             </div>
             <div class="fscore score-${color}">${score}</div>
           </div>`;
