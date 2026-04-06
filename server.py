@@ -51,6 +51,10 @@ class FounderResult(BaseModel):
     name: str
     company: Optional[str] = None
     role: Optional[str] = None
+    industry: Optional[str] = None
+    stage: Optional[str] = None
+    date_founded: Optional[str] = None
+    product: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
     card: Optional[FounderCard] = None
@@ -196,6 +200,12 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
     if not raw_founders:
         return DiscoverResponse(query=query_summary, founders=[])
 
+    # Search criteria to attach to each result
+    s_industry = sanitize_input(req.industry)
+    s_stage = sanitize_input(req.stage) if req.stage else None
+    s_product = sanitize_input(req.product) if req.product else None
+    s_date = sanitize_input(req.date_founded) if req.date_founded else None
+
     # Enrich and score each founder concurrently
     async def _process_one(entry: Dict) -> FounderResult:
         name = sanitize_input(entry.get("name", ""))
@@ -215,6 +225,10 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 name=name,
                 company=company,
                 role=role,
+                industry=s_industry,
+                stage=s_stage,
+                date_founded=s_date,
+                product=s_product,
                 source=source,
                 url=url,
                 card=card,
@@ -224,6 +238,8 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         except Exception as e:
             return FounderResult(
                 name=name, company=company, role=role,
+                industry=s_industry, stage=s_stage,
+                date_founded=s_date, product=s_product,
                 source=source, url=url, error=str(e),
             )
 

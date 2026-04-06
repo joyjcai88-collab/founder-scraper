@@ -112,8 +112,11 @@
     .founder-row:hover { border-color: #444; }
     .founder-row .rank { font-size: 20px; font-weight: 700; color: #555; min-width: 32px; text-align: center; }
     .founder-row .info { flex: 1; }
-    .founder-row .info .fname { font-size: 16px; font-weight: 600; }
+    .founder-row .info .fname { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
     .founder-row .info .fmeta { font-size: 13px; color: #888; margin-top: 2px; }
+    .founder-row .info .fdetails { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
+    .founder-row .info .fdetails .fdetail { font-size: 12px; color: #999; }
+    .founder-row .info .fdetails .fdetail .flabel { color: #666; margin-right: 4px; }
     .founder-row .fscore { font-size: 24px; font-weight: 700; min-width: 50px; text-align: right; }
     .founder-row .ferror { font-size: 13px; color: #f87171; }
     .source-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -579,8 +582,14 @@
       const color = scoreColor(data.overall_score);
 
       document.getElementById('detailName').textContent = f.name;
+      const detailMeta = [
+        f.industry ? `Industry: ${esc(f.industry)}` : '',
+        f.stage ? `Stage: ${esc(f.stage)}` : '',
+        f.date_founded ? `Founded: ${esc(f.date_founded)}` : '',
+        f.product ? `Product: ${esc(f.product)}` : '',
+      ].filter(Boolean).join('  ·  ');
       const detailBadge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}" style="margin-left:8px">${esc(f.source)}</span>` : '';
-      document.getElementById('detailCompany').innerHTML = (f.role ? esc(f.role) : '') + (f.company ? (f.role ? ' at ' : '') + esc(f.company) : '') + detailBadge;
+      document.getElementById('detailCompany').innerHTML = detailMeta + detailBadge;
       const ds = document.getElementById('detailScore');
       ds.textContent = Math.round(data.overall_score);
       ds.className = `score-number score-${color}`;
@@ -688,13 +697,20 @@
 
         founderList.innerHTML = data.founders.map((f, i) => {
           const badge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}">${esc(f.source)}</span>` : '';
-          const roleLine = f.role ? esc(f.role) : '';
-          const companyLine = f.company ? esc(f.company) : '';
-          const meta = [roleLine, companyLine].filter(Boolean).join(' at ');
+          const details = [
+            f.industry ? `<span class="fdetail"><span class="flabel">Industry:</span>${esc(f.industry)}</span>` : '',
+            f.stage ? `<span class="fdetail"><span class="flabel">Stage:</span>${esc(f.stage)}</span>` : '',
+            f.date_founded ? `<span class="fdetail"><span class="flabel">Founded:</span>${esc(f.date_founded)}</span>` : '',
+            f.product ? `<span class="fdetail"><span class="flabel">Product:</span>${esc(f.product)}</span>` : '',
+          ].filter(Boolean).join('');
           if (f.error) {
             return `<div class="founder-row">
               <div class="rank">${i + 1}</div>
-              <div class="info"><div class="fname">${esc(f.name)}</div><div class="fmeta">${meta}</div><div class="fmeta" style="margin-top:4px">${badge}</div></div>
+              <div class="info">
+                <div class="fname">${esc(f.name)}</div>
+                ${details ? `<div class="fdetails">${details}</div>` : ''}
+                <div class="fmeta" style="margin-top:4px">${badge}</div>
+              </div>
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
           }
@@ -704,7 +720,7 @@
             <div class="rank">${i + 1}</div>
             <div class="info">
               <div class="fname">${esc(f.name)}</div>
-              <div class="fmeta">${meta}</div>
+              ${details ? `<div class="fdetails">${details}</div>` : ''}
               <div class="fmeta" style="margin-top:4px">${badge}</div>
             </div>
             <div class="fscore score-${color}">${score}</div>
