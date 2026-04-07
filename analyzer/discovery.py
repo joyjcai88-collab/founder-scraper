@@ -238,6 +238,10 @@ async def discover_founders(
             if not parsed or not parsed.get("name"):
                 continue
 
+            # Only keep results with real person names
+            if not _looks_like_person_name(parsed["name"]):
+                continue
+
             # Deduplicate by normalized name
             name_key = parsed["name"].lower().strip()
             if name_key in seen_names or len(name_key) < 3:
@@ -254,6 +258,73 @@ async def discover_founders(
 def get_available_sources() -> List[Dict[str, str]]:
     """Return list of available sources with key and label."""
     return [{"key": s.key, "label": s.label} for s in SOURCES]
+
+
+# ---------------------------------------------------------------------------
+# Name validation
+# ---------------------------------------------------------------------------
+
+# Words that indicate a source/company/page title, not a person
+_NOT_A_PERSON = {
+    "twitter", "linkedin", "crunchbase", "facebook", "instagram", "github",
+    "product hunt", "producthunt", "angellist", "wellfound", "techstars",
+    "y combinator", "on deck", "buildspace", "pioneer", "substack",
+    "entrepreneur first", "medium", "startups", "companies", "funded",
+    "health tech", "fintech", "ai", "saas", "series", "seed", "pre-seed",
+}
+
+# Job titles that get mistaken for names
+_TITLE_WORDS = {
+    "senior", "junior", "lead", "staff", "principal", "director", "manager",
+    "engineer", "developer", "designer", "analyst", "consultant", "product",
+    "marketing", "sales", "operations", "head", "vp", "vice", "president",
+    "associate", "intern", "specialist", "coordinator", "executive",
+}
+
+
+def _looks_like_person_name(name: str) -> bool:
+    """Check if a string looks like a real person's name."""
+    if not name or len(name) < 3:
+        return False
+    # Too long for a name
+    if len(name) > 40:
+        return False
+    # Must have at least 2 words (first + last name)
+    words = name.split()
+    if len(words) < 2:
+        return False
+    # Too many words — likely a title or sentence
+    if len(words) > 5:
+        return False
+    # Check against known non-person words
+    lower = name.lower()
+    for bad in _NOT_A_PERSON:
+        if bad == lower or lower.startswith(bad + " ") or lower.endswith(" " + bad):
+            return False
+    # Should not contain special chars that indicate a title/URL
+    if any(c in name for c in ["http", "www.", ".com", "@", "#", "(", ")", "|"]):
+        return False
+    # Each word should start with a letter (person names do)
+    for word in words:
+        if not word[0].isalpha():
+            return False
+    # Reject job titles mistaken for names
+    first_word = words[0].lower().rstrip(".,")
+    if first_word in _TITLE_WORDS:
+        return False
+    # Real names have capitalized words (at least first and last)
+    capitalized = sum(1 for w in words if w[0].isupper())
+    if capitalized < 2:
+        return False
+    # Reject if any word is a common non-name word
+    lower_words = {w.lower().rstrip(".,") for w in words}
+    non_name = {"the", "for", "and", "with", "how", "why", "what", "top",
+                "best", "new", "app", "tool", "tools", "platform", "powering",
+                "makers", "devops", "software", "startup", "startups", "tech",
+                "digital", "global", "review", "list", "guide", "free"}
+    if lower_words & non_name:
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -331,12 +402,9 @@ def _parse_yc(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
         if " and " in name.lower():
             name = name.split(" and ")[0].strip()
 
-    # If no founder name found in body, use company as context
+    # Skip if we couldn't extract an actual founder name
     if not name:
-        # For YC results, the company is still valuable even without a specific founder name
-        # We'll use the company name and mark for enrichment
-        name = company
-        role = "YC Company"
+        return None
 
     return {"name": name, "company": company, "role": role}
 
@@ -382,8 +450,10 @@ def _parse_twitter(href: str, title: str, body: str) -> Optional[Dict[str, str]]
         return None
 
     # Title: "Name (@handle) / X" or "Name (@handle) | Twitter"
-    name = re.sub(r"\s*[\(/].*$", "", title).strip()
-    name = re.sub(r"\s*[\|·\-]\s*(?:Twitter|X)\s*$", "", name, flags=re.IGNORECASE).strip()
+    # Remove (@handle) and everything after it
+    name = re.sub(r"\s*\(@?\w+\).*$", "", title).strip()
+    # Remove " / X", " | Twitter", " - X" suffixes
+    name = re.sub(r"\s*[\|·/\-]\s*(?:Twitter|X)\s*$", "", name, flags=re.IGNORECASE).strip()
 
     # Try to extract role/company from bio in body
     company = ""
@@ -434,17 +504,19 @@ def _parse_generic(href: str, title: str, body: str) -> Optional[Dict[str, str]]
                 company = rest
 
     # If name is too long or looks like a sentence, try to extract from body
-    if len(name) > 50 or " is " in name.lower():
+    if len(name) > 40 or " is " in name.lower() or not _looks_like_person_name(name):
         founder_match = re.search(
-            r"(?:founder|co-founder|CEO)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)+)",
+            r"(?:founder|co-founder|CEO|CTO)\s+(?:of\s+\w+\s+)?([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})",
             body, re.IGNORECASE
         )
         if founder_match:
             name = founder_match.group(1).strip()
+        else:
+            return None
 
     # Clean up
     name = re.sub(r"\s+", " ", name).strip()
-    if not name or len(name) < 2 or len(name) > 60:
+    if not name or len(name) < 2 or len(name) > 40:
         return None
 
     return {"name": name, "company": company, "role": role}
