@@ -43,7 +43,7 @@ class DiscoverRequest(BaseModel):
     stage: Optional[str] = None
     product: Optional[str] = None
     date_founded: Optional[str] = None
-    limit: int = Field(default=10, ge=1, le=25)
+    limit: int = Field(default=3, ge=1, le=25)
     sources: Optional[List[str]] = None
 
 
@@ -55,6 +55,7 @@ class FounderResult(BaseModel):
     stage: Optional[str] = None
     date_founded: Optional[str] = None
     product: Optional[str] = None
+    product_desc: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
     card: Optional[FounderCard] = None
@@ -211,6 +212,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         name = sanitize_input(entry.get("name", ""))
         company = sanitize_input(entry.get("company", "")) or None
         role = entry.get("role", "")
+        product_desc = entry.get("product_desc", "") or None
         source = entry.get("source", "")
         url = entry.get("url", "")
         if not name:
@@ -229,6 +231,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 stage=s_stage,
                 date_founded=s_date,
                 product=s_product,
+                product_desc=product_desc,
                 source=source,
                 url=url,
                 card=card,
@@ -240,6 +243,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 name=name, company=company, role=role,
                 industry=s_industry, stage=s_stage,
                 date_founded=s_date, product=s_product,
+                product_desc=product_desc,
                 source=source, url=url, error=str(e),
             )
 

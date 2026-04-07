@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
-    .container { max-width: 780px; margin: 0 auto; padding: 48px 24px; }
+    .container { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
     h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; color: #111827; }
     .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 14px; }
 
@@ -108,17 +108,19 @@
     .discover-results.active { display: block; }
     .discover-header { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
     .discover-header span { color: #111827; font-weight: 500; }
-    .founder-row { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .founder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 700px) { .founder-grid { grid-template-columns: 1fr; } }
+    .founder-row { display: flex; flex-direction: column; padding: 20px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .founder-row:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
-    .founder-row .rank { font-size: 20px; font-weight: 700; color: #d1d5db; min-width: 32px; text-align: center; }
+    .founder-row .rank { font-size: 14px; font-weight: 700; color: #d1d5db; margin-bottom: 8px; }
     .founder-row .info { flex: 1; }
     .founder-row .info .fname { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #111827; }
     .founder-row .info .fmeta { font-size: 13px; color: #6b7280; margin-top: 2px; }
-    .founder-row .info .fdetails { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
+    .founder-row .info .fdetails { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
     .founder-row .info .fdetails .fdetail { font-size: 12px; color: #6b7280; }
     .founder-row .info .fdetails .fdetail .flabel { color: #9ca3af; margin-right: 4px; }
-    .founder-row .fscore { font-size: 24px; font-weight: 700; min-width: 50px; text-align: right; }
-    .founder-row .ferror { font-size: 13px; color: #dc2626; }
+    .founder-row .fscore { font-size: 28px; font-weight: 700; text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3f4f6; }
+    .founder-row .ferror { font-size: 13px; color: #dc2626; margin-top: 12px; }
     .source-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
     .source-yc { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
     .source-linkedin { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
@@ -279,7 +281,7 @@
 
       <div class="discover-results" id="discoverResults">
         <div class="discover-header" id="discoverHeader"></div>
-        <div id="founderList"></div>
+        <div class="founder-grid" id="founderList"></div>
       </div>
 
       <!-- Detail view for a single discovered founder -->
@@ -702,14 +704,15 @@
             f.stage ? `<span class="fdetail"><span class="flabel">Stage:</span>${esc(f.stage)}</span>` : '',
             f.date_founded ? `<span class="fdetail"><span class="flabel">Founded:</span>${esc(f.date_founded)}</span>` : '',
             f.product ? `<span class="fdetail"><span class="flabel">Product:</span>${esc(f.product)}</span>` : '',
+            f.product_desc ? `<span class="fdetail" style="flex-basis:100%;color:#374151;margin-top:4px"><span class="flabel">Building:</span>${esc(f.product_desc)}</span>` : '',
           ].filter(Boolean).join('');
           if (f.error) {
             return `<div class="founder-row">
-              <div class="rank">${i + 1}</div>
+              <div class="rank">#${i + 1}</div>
               <div class="info">
                 <div class="fname">${esc(f.name)}</div>
                 ${details ? `<div class="fdetails">${details}</div>` : ''}
-                <div class="fmeta" style="margin-top:4px">${badge}</div>
+                <div class="fmeta" style="margin-top:6px">${badge}</div>
               </div>
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
@@ -717,11 +720,11 @@
           const score = f.card ? Math.round(f.card.overall_score) : '?';
           const color = f.card ? scoreColor(f.card.overall_score) : 'red';
           return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
-            <div class="rank">${i + 1}</div>
+            <div class="rank">#${i + 1}</div>
             <div class="info">
               <div class="fname">${esc(f.name)}</div>
               ${details ? `<div class="fdetails">${details}</div>` : ''}
-              <div class="fmeta" style="margin-top:4px">${badge}</div>
+              <div class="fmeta" style="margin-top:6px">${badge}</div>
             </div>
             <div class="fscore score-${color}">${score}</div>
           </div>`;

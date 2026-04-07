@@ -225,7 +225,7 @@ async def discover_founders(
 
             # Parse based on source type
             if source.parser == "linkedin":
-                parsed = _parse_linkedin(href, title)
+                parsed = _parse_linkedin(href, title, body)
             elif source.parser == "yc":
                 parsed = _parse_yc(href, title, body)
             elif source.parser == "crunchbase":
@@ -331,7 +331,33 @@ def _looks_like_person_name(name: str) -> bool:
 # Source-specific parsers
 # ---------------------------------------------------------------------------
 
-def _parse_linkedin(href: str, title: str) -> Optional[Dict[str, str]]:
+def _extract_product(body: str) -> str:
+    """Try to extract a short product/service description from a search snippet."""
+    if not body:
+        return ""
+    # Look for common patterns describing what the company/person does
+    patterns = [
+        r"(?:building|builds?|created?|developing|offers?|provides?|making)\s+(.{10,80}?)(?:\.|,|$)",
+        r"(?:platform|tool|app|service|product|solution|software)\s+(?:for|that)\s+(.{10,80}?)(?:\.|,|$)",
+        r"(?:helps?|enabling|empowering)\s+(.{10,80}?)(?:\.|,|$)",
+    ]
+    for pat in patterns:
+        m = re.search(pat, body, re.IGNORECASE)
+        if m:
+            desc = m.group(1).strip()
+            # Clean up and cap length
+            desc = re.sub(r"\s+", " ", desc).strip().rstrip(".,;")
+            if len(desc) > 80:
+                desc = desc[:77] + "..."
+            return desc
+    # Fallback: use first sentence of body if short enough
+    first = body.split(".")[0].strip()
+    if 15 < len(first) < 100:
+        return first
+    return ""
+
+
+def _parse_linkedin(href: str, title: str, body: str = "") -> Optional[Dict[str, str]]:
     """Parse a LinkedIn search result."""
     # Filter out non-profile URLs
     slug_match = re.search(r"linkedin\.com/in/([a-zA-Z0-9_-]+)", href)
@@ -371,7 +397,7 @@ def _parse_linkedin(href: str, title: str) -> Optional[Dict[str, str]]:
     role = re.sub(r"\s+", " ", role).strip()
     company = re.sub(r"\s+", " ", company).strip()
 
-    return {"name": name, "company": company, "role": role or "Founder"}
+    return {"name": name, "company": company, "role": role or "Founder", "product_desc": _extract_product(body)}
 
 
 def _parse_yc(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
@@ -406,7 +432,7 @@ def _parse_yc(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
     if not name:
         return None
 
-    return {"name": name, "company": company, "role": role}
+    return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
 
 
 def _parse_crunchbase(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
@@ -434,7 +460,7 @@ def _parse_crunchbase(href: str, title: str, body: str) -> Optional[Dict[str, st
         if role_type:
             role = role_type.group(1).title()
 
-    return {"name": name, "company": company, "role": role}
+    return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
 
 
 def _parse_twitter(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
@@ -469,7 +495,7 @@ def _parse_twitter(href: str, title: str, body: str) -> Optional[Dict[str, str]]
     if not name or len(name) < 2:
         return None
 
-    return {"name": name, "company": company, "role": role}
+    return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
 
 
 def _parse_generic(href: str, title: str, body: str) -> Optional[Dict[str, str]]:
@@ -519,4 +545,4 @@ def _parse_generic(href: str, title: str, body: str) -> Optional[Dict[str, str]]
     if not name or len(name) < 2 or len(name) > 40:
         return None
 
-    return {"name": name, "company": company, "role": role}
+    return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
