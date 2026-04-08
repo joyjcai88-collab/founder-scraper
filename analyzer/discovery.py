@@ -242,6 +242,26 @@ async def discover_founders(
             if not _looks_like_person_name(parsed["name"]):
                 continue
 
+            # Try to fill in company if missing
+            company = (parsed.get("company") or "").strip()
+            if not company or len(company) < 2:
+                company = _extract_company_from_text(body)
+                if company:
+                    parsed["company"] = company
+
+            # Try to fill in product_desc if missing
+            product_desc = (parsed.get("product_desc") or "").strip()
+            if not product_desc:
+                product_desc = _extract_product(body)
+                if product_desc:
+                    parsed["product_desc"] = product_desc
+
+            # Must have BOTH a founder name AND at least a company or product
+            has_company = bool((parsed.get("company") or "").strip())
+            has_product = bool((parsed.get("product_desc") or "").strip())
+            if not has_company and not has_product:
+                continue
+
             # Deduplicate by normalized name
             name_key = parsed["name"].lower().strip()
             if name_key in seen_names or len(name_key) < 3:
@@ -308,8 +328,12 @@ def _looks_like_person_name(name: str) -> bool:
     for word in words:
         if not word[0].isalpha():
             return False
-    # Reject job titles mistaken for names
+    # Reject names starting with prepositions or articles — fragments, not names
     first_word = words[0].lower().rstrip(".,")
+    if first_word in {"of", "at", "in", "on", "for", "by", "from", "with",
+                       "the", "a", "an", "to", "and", "or", "is", "was"}:
+        return False
+    # Reject job titles mistaken for names
     if first_word in _TITLE_WORDS:
         return False
     # Real names have capitalized words (at least first and last)
@@ -357,6 +381,40 @@ def _extract_product(body: str) -> str:
     return ""
 
 
+_COMPANY_STOP = r"(?:\.|,|\s{2}|\||\bin\b|\bbased\b|\bto\b|\bon\b|\band\b|\bfor\b|\bwith\b|\bsince\b|$)"
+
+
+def _extract_company_from_text(text: str) -> str:
+    """Try to extract a company name from body/snippet text as a fallback."""
+    if not text:
+        return ""
+    # Pattern: "Founder of CompanyName" / "CEO of CompanyName" (highest signal)
+    of_match = re.search(
+        r"(?:founder|co-founder|CEO|CTO|COO)\s+(?:of|at)\s+([A-Z][a-zA-Z0-9][\w\s&.]{0,30}?)" + _COMPANY_STOP,
+        text, re.IGNORECASE,
+    )
+    if of_match:
+        return of_match.group(1).strip().rstrip(".,; ")
+
+    # Pattern: "at CompanyName" or "@ CompanyName"
+    at_match = re.search(
+        r"(?:^|\s)(?:at|@)\s+([A-Z][a-zA-Z0-9][\w\s&.]{0,30}?)" + _COMPANY_STOP,
+        text,
+    )
+    if at_match:
+        return at_match.group(1).strip().rstrip(".,; ")
+
+    # Pattern: "building CompanyName" or "launched CompanyName"
+    build_match = re.search(
+        r"(?:building|launched|runs?|leads?)\s+([A-Z][a-zA-Z0-9][\w\s&.]{0,30}?)" + _COMPANY_STOP,
+        text, re.IGNORECASE,
+    )
+    if build_match:
+        return build_match.group(1).strip().rstrip(".,; ")
+
+    return ""
+
+
 def _parse_linkedin(href: str, title: str, body: str = "") -> Optional[Dict[str, str]]:
     """Parse a LinkedIn search result."""
     # Filter out non-profile URLs
@@ -396,6 +454,10 @@ def _parse_linkedin(href: str, title: str, body: str = "") -> Optional[Dict[str,
     name = re.sub(r"\s+", " ", name).strip()
     role = re.sub(r"\s+", " ", role).strip()
     company = re.sub(r"\s+", " ", company).strip()
+
+    # If no company from title, try to extract from body
+    if not company and body:
+        company = _extract_company_from_text(body)
 
     return {"name": name, "company": company, "role": role or "Founder", "product_desc": _extract_product(body)}
 
@@ -495,6 +557,10 @@ def _parse_twitter(href: str, title: str, body: str) -> Optional[Dict[str, str]]
     if not name or len(name) < 2:
         return None
 
+    # If no company from bio, try harder with body text
+    if not company and body:
+        company = _extract_company_from_text(body)
+
     return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
 
 
@@ -544,5 +610,9 @@ def _parse_generic(href: str, title: str, body: str) -> Optional[Dict[str, str]]
     name = re.sub(r"\s+", " ", name).strip()
     if not name or len(name) < 2 or len(name) > 40:
         return None
+
+    # If no company found, try extracting from body
+    if not company and body:
+        company = _extract_company_from_text(body)
 
     return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}

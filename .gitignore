@@ -24,6 +24,9 @@ env/
 *.swp
 *.swo
 
+# Database
+founders.db
+
 # OS
 .DS_Store
 Thumbs.db

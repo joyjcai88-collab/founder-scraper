@@ -7,12 +7,13 @@ from typing import List, Optional, Dict, Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from analyzer.discovery import discover_founders, get_available_sources
 from analyzer.enricher import enrich_founder
+from analyzer.product_eval import evaluate_product
 from analyzer.scorer import score_founder
 from models.founder import FounderCard, LinkedInData, PDLData
 from scraper.linkedin import (
@@ -22,6 +23,16 @@ from scraper.linkedin import (
     is_linkedin_configured,
 )
 from scraper.safety import sanitize_input
+from database import (
+    save_founder,
+    list_saved_founders,
+    get_saved_founder,
+    update_founder_notes,
+    delete_saved_founder,
+    is_founder_saved,
+    export_csv,
+    export_json,
+)
 
 load_dotenv()
 
@@ -43,7 +54,7 @@ class DiscoverRequest(BaseModel):
     stage: Optional[str] = None
     product: Optional[str] = None
     date_founded: Optional[str] = None
-    limit: int = Field(default=3, ge=1, le=25)
+    limit: int = Field(default=5, ge=1, le=25)
     sources: Optional[List[str]] = None
 
 
@@ -56,6 +67,7 @@ class FounderResult(BaseModel):
     date_founded: Optional[str] = None
     product: Optional[str] = None
     product_desc: Optional[str] = None
+    product_eval: Optional[Dict] = None
     source: Optional[str] = None
     url: Optional[str] = None
     card: Optional[FounderCard] = None
@@ -216,9 +228,38 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         source = entry.get("source", "")
         url = entry.get("url", "")
         if not name:
-            return FounderResult(name="Unknown", error="No name returned")
+            return None  # Skip — no founder name
+        if not company and not product_desc:
+            return None  # Skip — no company or product
+
+        # Evaluate product (runs locally, no API needed)
+        p_eval = evaluate_product(
+            product_desc=product_desc,
+            company=company,
+            industry=s_industry,
+            role=role,
+            stage=s_stage,
+        )
+
         try:
             profile = await enrich_founder(name, company)
+
+            # Re-evaluate with enrichment data for better accuracy
+            enrichment_text = ""
+            if profile.pdl and profile.pdl.summary:
+                enrichment_text = profile.pdl.summary
+            elif profile.linkedin and profile.linkedin.headline:
+                enrichment_text = profile.linkedin.headline
+            if enrichment_text:
+                p_eval = evaluate_product(
+                    product_desc=product_desc,
+                    company=company,
+                    industry=s_industry,
+                    role=role,
+                    stage=s_stage,
+                    enrichment_summary=enrichment_text,
+                )
+
             loop = asyncio.get_event_loop()
             card = await loop.run_in_executor(
                 None, partial(_sync_score, profile)
@@ -232,6 +273,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 date_founded=s_date,
                 product=s_product,
                 product_desc=product_desc,
+                product_eval=p_eval,
                 source=source,
                 url=url,
                 card=card,
@@ -244,10 +286,14 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                 industry=s_industry, stage=s_stage,
                 date_founded=s_date, product=s_product,
                 product_desc=product_desc,
+                product_eval=p_eval,
                 source=source, url=url, error=str(e),
             )
 
-    results = await asyncio.gather(*[_process_one(f) for f in raw_founders])
+    raw_results = await asyncio.gather(*[_process_one(f) for f in raw_founders])
+
+    # Filter out None results (missing name or company)
+    results = [r for r in raw_results if r is not None]
 
     # Sort by overall score (highest first), errors at the end
     scored = sorted(
@@ -263,6 +309,110 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
 async def api_sources():
     """Return available discovery sources."""
     return get_available_sources()
+
+
+# --- Saved Founders endpoints ---
+
+class SaveFounderRequest(BaseModel):
+    name: str
+    company: Optional[str] = None
+    role: Optional[str] = None
+    industry: Optional[str] = None
+    stage: Optional[str] = None
+    date_founded: Optional[str] = None
+    product: Optional[str] = None
+    product_desc: Optional[str] = None
+    product_eval: Optional[Dict] = None
+    source: Optional[str] = None
+    url: Optional[str] = None
+    overall_score: Optional[float] = None
+    card: Optional[Dict] = None
+    enrichment: Optional[Dict] = None
+    linkedin: Optional[Dict] = None
+    notes: Optional[str] = ""
+    search_query: Optional[str] = None
+
+
+class UpdateNotesRequest(BaseModel):
+    notes: str
+
+
+@app.get("/api/saved")
+async def api_list_saved():
+    """List all saved founder profiles."""
+    founders = list_saved_founders()
+    return {"founders": founders, "count": len(founders)}
+
+
+@app.post("/api/saved")
+async def api_save_founder(req: SaveFounderRequest):
+    """Save a founder profile to the database."""
+    # Check if already saved
+    existing_id = is_founder_saved(req.name, req.company)
+    if existing_id:
+        return {"id": existing_id, "already_saved": True}
+
+    row_id = save_founder(req.dict())
+    return {"id": row_id, "already_saved": False}
+
+
+@app.get("/api/saved/{founder_id}")
+async def api_get_saved(founder_id: int):
+    """Get a single saved founder by ID."""
+    founder = get_saved_founder(founder_id)
+    if not founder:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+    return founder
+
+
+@app.put("/api/saved/{founder_id}/notes")
+async def api_update_notes(founder_id: int, req: UpdateNotesRequest):
+    """Update notes for a saved founder."""
+    success = update_founder_notes(founder_id, req.notes)
+    if not success:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+    return {"updated": True}
+
+
+@app.delete("/api/saved/{founder_id}")
+async def api_delete_saved(founder_id: int):
+    """Remove a founder from saved profiles."""
+    success = delete_saved_founder(founder_id)
+    if not success:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+    return {"deleted": True}
+
+
+@app.get("/api/saved/check/{name}")
+async def api_check_saved(name: str, company: Optional[str] = None):
+    """Check if a founder is already saved."""
+    founder_id = is_founder_saved(name, company)
+    return {"saved": founder_id is not None, "id": founder_id}
+
+
+@app.get("/api/export/csv")
+async def api_export_csv():
+    """Export all saved founders as CSV."""
+    csv_data = export_csv()
+    if not csv_data:
+        return JSONResponse({"error": "No saved founders to export"}, status_code=404)
+    return StreamingResponse(
+        iter([csv_data]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=founders.csv"},
+    )
+
+
+@app.get("/api/export/json")
+async def api_export_json():
+    """Export all saved founders as JSON."""
+    data = export_json()
+    if not data:
+        return JSONResponse({"error": "No saved founders to export"}, status_code=404)
+    return JSONResponse(
+        content={"founders": data, "exported_at": __import__("datetime").datetime.utcnow().isoformat()},
+        headers={"Content-Disposition": "attachment; filename=founders.json"},
+    )
 
 
 def _sync_score(profile):

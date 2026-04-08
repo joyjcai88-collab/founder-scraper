@@ -20,16 +20,6 @@
     .tab-panel.active { display: block; }
 
     /* Forms */
-    .search-form { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
-    .search-form input, .search-form select { background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 16px; color: #111827; font-size: 15px; outline: none; }
-    .search-form input:focus, .search-form select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    .search-form select { appearance: none; cursor: pointer; }
-    .search-form input[name="name"] { flex: 2; min-width: 200px; }
-    .search-form input[name="company"] { flex: 1; min-width: 140px; }
-    .search-form button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; cursor: pointer; font-weight: 500; white-space: nowrap; }
-    .search-form button:hover { background: #1d4ed8; }
-    .search-form button:disabled { opacity: 0.5; cursor: not-allowed; }
-
     .discover-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
     .discover-form input, .discover-form select { background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 16px; color: #111827; font-size: 15px; outline: none; width: 100%; }
     .discover-form input:focus, .discover-form select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
@@ -46,29 +36,12 @@
 
     .error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #dc2626; display: none; }
 
-    /* Score card */
+    /* Profile card */
     .card { display: none; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
     .card.active { display: block; }
     .card-header { padding: 24px; border-bottom: 1px solid #e5e7eb; }
     .card-header h2 { font-size: 22px; font-weight: 600; color: #111827; }
     .card-header .company { color: #6b7280; font-size: 14px; margin-top: 4px; }
-
-    .overall-score { padding: 24px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #e5e7eb; }
-    .score-number { font-size: 48px; font-weight: 700; min-width: 80px; }
-    .score-label { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-    .score-bar-outer { flex: 1; height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden; }
-    .score-bar-inner { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
-
-    .breakdown { padding: 24px; border-bottom: 1px solid #e5e7eb; }
-    .breakdown h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 16px; }
-    .category { margin-bottom: 16px; }
-    .category:last-child { margin-bottom: 0; }
-    .cat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .cat-name { font-size: 14px; font-weight: 500; color: #374151; }
-    .cat-score { font-size: 14px; font-weight: 600; }
-    .cat-bar-outer { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
-    .cat-bar-inner { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-    .cat-rationale { font-size: 13px; color: #6b7280; line-height: 1.4; }
 
     .section { padding: 24px; border-bottom: 1px solid #e5e7eb; }
     .section:last-child { border-bottom: none; }
@@ -79,9 +52,6 @@
     .source-link { display: block; font-size: 13px; color: #2563eb; text-decoration: none; padding: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .source-link:hover { text-decoration: underline; }
 
-    .score-green { color: #16a34a; }
-    .score-yellow { color: #ca8a04; }
-    .score-red { color: #dc2626; }
     .bar-green { background: #22c55e; }
     .bar-yellow { background: #eab308; }
     .bar-red { background: #ef4444; }
@@ -109,7 +79,8 @@
     .discover-header { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
     .discover-header span { color: #111827; font-weight: 500; }
     .founder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    @media (max-width: 700px) { .founder-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .founder-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .founder-grid { grid-template-columns: 1fr; } }
     .founder-row { display: flex; flex-direction: column; padding: 20px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .founder-row:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
     .founder-row .rank { font-size: 14px; font-weight: 700; color: #d1d5db; margin-bottom: 8px; }
@@ -119,8 +90,23 @@
     .founder-row .info .fdetails { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
     .founder-row .info .fdetails .fdetail { font-size: 12px; color: #6b7280; }
     .founder-row .info .fdetails .fdetail .flabel { color: #9ca3af; margin-right: 4px; }
-    .founder-row .fscore { font-size: 28px; font-weight: 700; text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3f4f6; }
     .founder-row .ferror { font-size: 13px; color: #dc2626; margin-top: 12px; }
+    .product-eval { margin-top: 12px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .product-eval .pe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .product-eval .pe-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; }
+    .product-eval .pe-score { font-size: 14px; font-weight: 700; }
+    .product-eval .pe-bar { height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+    .product-eval .pe-bar-fill { height: 100%; border-radius: 2px; }
+    .product-eval .pe-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+    .product-eval .pe-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 500; }
+    .pe-tag-high { background: #dcfce7; color: #166534; }
+    .pe-tag-medium { background: #fef9c3; color: #854d0e; }
+    .pe-tag-low { background: #fef2f2; color: #991b1b; }
+    .pe-tag-strong { background: #dbeafe; color: #1e40af; }
+    .pe-tag-moderate { background: #fef9c3; color: #854d0e; }
+    .pe-tag-weak { background: #f3f4f6; color: #6b7280; }
+    .product-eval .pe-verdict { font-size: 11px; color: #374151; line-height: 1.4; }
+    .product-eval .pe-signals { font-size: 10px; color: #6b7280; margin-top: 4px; line-height: 1.3; }
     .source-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
     .source-yc { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
     .source-linkedin { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
@@ -150,6 +136,45 @@
     .progress-bar { width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 12px; overflow: hidden; }
     .progress-fill { height: 100%; background: #2563eb; border-radius: 2px; transition: width 0.3s; }
     .progress-text { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+
+    /* Save button */
+    .save-btn { display: inline-flex; align-items: center; gap: 5px; background: #ffffff; border: 1px solid #d1d5db; color: #374151; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; margin-top: 8px; }
+    .save-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+    .save-btn.saved { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+    .save-btn.saved:hover { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
+    .save-btn svg { width: 14px; height: 14px; }
+
+    /* Saved founders tab */
+    .saved-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .saved-count { font-size: 14px; color: #6b7280; }
+    .saved-count span { font-weight: 600; color: #111827; }
+    .export-btns { display: flex; gap: 8px; }
+    .export-btn { display: inline-flex; align-items: center; gap: 6px; background: #ffffff; border: 1px solid #d1d5db; color: #374151; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+    .export-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+    .export-btn svg { width: 16px; height: 16px; }
+    .saved-empty { text-align: center; padding: 64px 24px; color: #9ca3af; }
+    .saved-empty svg { width: 48px; height: 48px; margin-bottom: 16px; color: #d1d5db; }
+    .saved-empty p { font-size: 15px; margin-bottom: 4px; }
+    .saved-empty .hint { font-size: 13px; }
+    .saved-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 700px) { .saved-grid { grid-template-columns: 1fr; } }
+    .saved-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+    .saved-card .saved-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .saved-card .saved-name { font-size: 16px; font-weight: 600; color: #111827; }
+    .saved-card .saved-company { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+    .saved-card .saved-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .saved-card .saved-detail { font-size: 12px; color: #6b7280; }
+    .saved-card .saved-detail .slabel { color: #9ca3af; margin-right: 4px; }
+    .saved-card .saved-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f3f4f6; }
+    .saved-card .notes-area { margin-top: 8px; }
+    .saved-card .notes-area textarea { width: 100%; min-height: 48px; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 12px; font-family: inherit; color: #374151; resize: vertical; background: #f9fafb; }
+    .saved-card .notes-area textarea:focus { border-color: #93c5fd; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .saved-card .notes-saved { font-size: 11px; color: #16a34a; margin-top: 4px; display: none; }
+    .remove-btn { display: inline-flex; align-items: center; gap: 4px; background: #ffffff; border: 1px solid #e5e7eb; color: #6b7280; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+    .remove-btn:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+    .saved-date { font-size: 11px; color: #9ca3af; margin-top: auto; padding-top: 6px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #111827; color: #ffffff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .toast.visible { transform: translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
@@ -158,95 +183,12 @@
     <p class="subtitle">AI-powered founder enrichment and scoring for VC deal flow</p>
 
     <div class="tabs">
-      <div class="tab active" data-tab="score">Score Founder</div>
-      <div class="tab" data-tab="discover">Discover Founders</div>
-    </div>
-
-    <!-- ===== SCORE TAB ===== -->
-    <div class="tab-panel active" id="panel-score">
-      <div id="linkedinBar" style="display:none; margin-bottom: 16px; padding: 12px 16px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; align-items: center; gap: 12px;">
-        <span id="linkedinStatus" style="font-size: 13px; color: #888; flex: 1;"></span>
-        <button id="linkedinBtn" style="background: #0a66c2; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 500;">Connect LinkedIn</button>
-      </div>
-
-      <form class="search-form" id="searchForm">
-        <input type="text" name="name" placeholder="Founder name" required>
-        <input type="text" name="company" placeholder="Company (optional)">
-        <button type="submit" id="submitBtn">Score</button>
-      </form>
-
-      <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Scraping public data and analyzing with Claude...</p>
-        <p style="color: #666; font-size: 13px; margin-top: 8px;">This may take 15-30 seconds</p>
-      </div>
-
-      <div class="error" id="error"></div>
-
-      <div class="card" id="card">
-        <div class="card-header">
-          <h2 id="founderName"></h2>
-          <div class="company" id="founderCompany"></div>
-        </div>
-        <div class="overall-score">
-          <div>
-            <div class="score-number" id="overallScore"></div>
-            <div class="score-label">Overall Score</div>
-          </div>
-          <div style="flex:1">
-            <div class="score-bar-outer">
-              <div class="score-bar-inner" id="overallBar"></div>
-            </div>
-          </div>
-        </div>
-        <div class="breakdown">
-          <h3>Category Breakdown</h3>
-          <div id="categories"></div>
-        </div>
-        <div class="section" id="thesisSection">
-          <h3>Thesis Fit</h3>
-          <p class="thesis-summary" id="thesisSummary"></p>
-        </div>
-        <div class="section" id="risksSection">
-          <h3>Key Risks</h3>
-          <div id="risks"></div>
-        </div>
-        <div class="section" id="linkedinSection" style="display:none">
-          <h3>LinkedIn Profile</h3>
-          <div id="linkedinHeadline" style="font-size:15px; font-weight:500; margin-bottom:4px;"></div>
-          <div id="linkedinMeta" style="font-size:13px; color:#888; margin-bottom:12px;"></div>
-          <div id="linkedinSummary" style="font-size:14px; line-height:1.5; color:#bbb; margin-bottom:16px;"></div>
-          <div id="linkedinLink"></div>
-        </div>
-        <div class="section" id="confidenceSection" style="display:none">
-          <h3>Match Confidence</h3>
-          <div id="confidence"></div>
-        </div>
-        <div class="section" id="experienceSection" style="display:none">
-          <h3>Work Experience</h3>
-          <div id="experience"></div>
-        </div>
-        <div class="section" id="educationSection" style="display:none">
-          <h3>Education</h3>
-          <div id="education"></div>
-        </div>
-        <div class="section" id="skillsSection" style="display:none">
-          <h3>Skills</h3>
-          <div id="skills" class="skills-list"></div>
-        </div>
-        <div class="section" id="socialsSection" style="display:none">
-          <h3>Social Profiles</h3>
-          <div id="socials"></div>
-        </div>
-        <div class="section" id="sourcesSection">
-          <h3>Sources</h3>
-          <div id="sources"></div>
-        </div>
-      </div>
+      <div class="tab active" data-tab="discover">Discover Founders</div>
+      <div class="tab" data-tab="saved">Saved <span id="savedTabCount" style="background:#e5e7eb;color:#6b7280;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:4px;display:none">0</span></div>
     </div>
 
     <!-- ===== DISCOVER TAB ===== -->
-    <div class="tab-panel" id="panel-discover">
+    <div class="tab-panel active" id="panel-discover">
       <form class="discover-form" id="discoverForm">
         <input type="text" name="industry" placeholder="Industry (e.g., AI, Fintech, HealthTech)" required>
         <select name="stage">
@@ -286,34 +228,21 @@
 
       <!-- Detail view for a single discovered founder -->
       <div class="founder-detail" id="founderDetail">
-        <button class="back-btn" id="backBtn">Back to results</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <button class="back-btn" id="backBtn" style="margin-bottom:0">Back to results</button>
+          <button class="save-btn" id="detailSaveBtn" onclick="saveFromDetail(this)">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+            Save
+          </button>
+        </div>
         <div class="card active" id="detailCard">
           <div class="card-header">
             <h2 id="detailName"></h2>
             <div class="company" id="detailCompany"></div>
           </div>
-          <div class="overall-score">
-            <div>
-              <div class="score-number" id="detailScore"></div>
-              <div class="score-label">Overall Score</div>
-            </div>
-            <div style="flex:1">
-              <div class="score-bar-outer">
-                <div class="score-bar-inner" id="detailBar"></div>
-              </div>
-            </div>
-          </div>
-          <div class="breakdown">
-            <h3>Category Breakdown</h3>
-            <div id="detailCategories"></div>
-          </div>
-          <div class="section" id="detailThesisSection">
-            <h3>Thesis Fit</h3>
-            <p class="thesis-summary" id="detailThesis"></p>
-          </div>
-          <div class="section" id="detailRisksSection">
-            <h3>Key Risks</h3>
-            <div id="detailRisks"></div>
+          <div class="section" id="detailProductEvalSection" style="display:none">
+            <h3>Product Evaluation</h3>
+            <div id="detailProductEval"></div>
           </div>
           <div class="section" id="detailExperienceSection" style="display:none">
             <h3>Work Experience</h3>
@@ -334,7 +263,35 @@
         </div>
       </div>
     </div>
+
+    <!-- ===== SAVED TAB ===== -->
+    <div class="tab-panel" id="panel-saved">
+      <div class="saved-toolbar">
+        <div class="saved-count">Saved Founders: <span id="savedCount">0</span></div>
+        <div class="export-btns">
+          <button class="export-btn" onclick="exportFounders('csv')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export CSV
+          </button>
+          <button class="export-btn" onclick="exportFounders('json')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="saved-empty" id="savedEmpty">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+        <p>No saved founders yet</p>
+        <p class="hint">Click the bookmark icon on any founder card to save their profile</p>
+      </div>
+
+      <div class="saved-grid" id="savedGrid"></div>
+    </div>
   </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
 
   <script>
     // --- Tab switching ---
@@ -353,193 +310,215 @@
       d.textContent = s || '';
       return d.innerHTML;
     }
-    function scoreColor(score) {
-      if (score >= 70) return 'green';
-      if (score >= 45) return 'yellow';
+    function peColor(score) {
+      if (score >= 65) return 'green';
+      if (score >= 40) return 'yellow';
       return 'red';
     }
-    function renderCategory(name, weight, score, rationale) {
-      const color = scoreColor(score);
-      return `<div class="category">
-        <div class="cat-header">
-          <span class="cat-name">${name} (${weight})</span>
-          <span class="cat-score score-${color}">${score}</span>
-        </div>
-        <div class="cat-bar-outer">
-          <div class="cat-bar-inner bar-${color}" style="width: ${score}%"></div>
-        </div>
-        <div class="cat-rationale">${esc(rationale)}</div>
-      </div>`;
+
+    // --- Toast notification ---
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 2500);
     }
 
-    // --- LinkedIn OAuth ---
-    const linkedinBar = document.getElementById('linkedinBar');
-    const linkedinStatus = document.getElementById('linkedinStatus');
-    const linkedinBtn = document.getElementById('linkedinBtn');
-    async function checkLinkedIn() {
+    // --- Save/Bookmark icons ---
+    const bookmarkOutline = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>';
+    const bookmarkFilled = '<svg fill="currentColor" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>';
+
+    // --- Saved founders management ---
+    let savedFounderIds = {};  // {name_company: id}
+
+    async function loadSavedFounders() {
       try {
-        const resp = await fetch('/api/linkedin/status');
+        const resp = await fetch('/api/saved');
         const data = await resp.json();
-        if (!data.configured) { linkedinBar.style.display = 'none'; return; }
-        linkedinBar.style.display = 'flex';
-        if (data.connected && data.profile) {
-          linkedinStatus.textContent = `LinkedIn connected: ${data.profile.name || 'Connected'}`;
-          linkedinStatus.style.color = '#4ade80';
-          linkedinBtn.textContent = 'Disconnect';
-          linkedinBtn.style.background = '#333';
-          linkedinBtn.onclick = disconnectLinkedIn;
-        } else {
-          linkedinStatus.textContent = 'Connect your LinkedIn for enhanced profile data';
-          linkedinStatus.style.color = '#888';
-          linkedinBtn.textContent = 'Connect LinkedIn';
-          linkedinBtn.style.background = '#0a66c2';
-          linkedinBtn.onclick = connectLinkedIn;
-        }
-      } catch (e) { linkedinBar.style.display = 'none'; }
-    }
-    function connectLinkedIn() {
-      window.open('/api/linkedin/connect', 'linkedin_oauth', 'width=600,height=700');
-      window.addEventListener('message', function handler(evt) {
-        if (evt.data?.type === 'linkedin_connected') { window.removeEventListener('message', handler); checkLinkedIn(); }
-      });
-    }
-    async function disconnectLinkedIn() { await fetch('/api/linkedin/disconnect'); checkLinkedIn(); }
-    checkLinkedIn();
-
-    // ===== SCORE TAB =====
-    const form = document.getElementById('searchForm');
-    const loading = document.getElementById('loading');
-    const errorEl = document.getElementById('error');
-    const card = document.getElementById('card');
-    const submitBtn = document.getElementById('submitBtn');
-
-    function renderScoreCard(data, enrichment, li) {
-      const b = data.breakdown;
-      const color = scoreColor(data.overall_score);
-      document.getElementById('founderName').textContent = data.name;
-      document.getElementById('founderCompany').textContent = data.company || '';
-      const scoreEl = document.getElementById('overallScore');
-      scoreEl.textContent = Math.round(data.overall_score);
-      scoreEl.className = `score-number score-${color}`;
-      const bar = document.getElementById('overallBar');
-      bar.style.width = `${data.overall_score}%`;
-      bar.className = `score-bar-inner bar-${color}`;
-      document.getElementById('categories').innerHTML = [
-        renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
-        renderCategory('Market', '25%', b.market, b.market_rationale),
-        renderCategory('Traction', '25%', b.traction, b.traction_rationale),
-        renderCategory('Network', '10%', b.network, b.network_rationale),
-        renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
-      ].join('');
-      document.getElementById('thesisSummary').textContent = data.thesis_fit_summary || 'N/A';
-      document.getElementById('risks').innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${esc(r)}</div>`).join('');
-      document.getElementById('risksSection').style.display = data.key_risks?.length ? '' : 'none';
-
-      // LinkedIn
-      const liSection = document.getElementById('linkedinSection');
-      if (li) {
-        if (li.headline) document.getElementById('linkedinHeadline').textContent = li.headline;
-        const metaParts = [];
-        if (li.location) metaParts.push(li.location);
-        if (li.followers) metaParts.push(`${li.followers.toLocaleString()} followers`);
-        if (li.connections) metaParts.push(`${li.connections.toLocaleString()} connections`);
-        document.getElementById('linkedinMeta').textContent = metaParts.join(' · ');
-        if (li.summary) document.getElementById('linkedinSummary').textContent = li.summary.slice(0, 500);
-        if (li.profile_url) document.getElementById('linkedinLink').innerHTML = `<a class="social-link" href="${esc(li.profile_url)}" target="_blank" rel="noopener">View LinkedIn Profile</a>`;
-        liSection.style.display = '';
-      } else { liSection.style.display = 'none'; }
-
-      // Experience
-      const allExperience = (li?.experience?.length ? li.experience : enrichment?.experience) || [];
-      const expSection = document.getElementById('experienceSection');
-      if (allExperience.length) {
-        document.getElementById('experience').innerHTML = allExperience.map(exp =>
-          `<div class="exp-item"><div class="exp-title">${esc(exp.title || 'Unknown Role')}</div><div class="exp-company">${esc(exp.company || '')}</div><div class="exp-dates">${esc(exp.start_date || '?')} — ${esc(exp.end_date || 'Present')}</div></div>`
-        ).join('');
-        expSection.style.display = '';
-      } else { expSection.style.display = 'none'; }
-
-      // Education
-      const allEducation = (li?.education?.length ? li.education : enrichment?.education) || [];
-      const eduSection = document.getElementById('educationSection');
-      if (allEducation.length) {
-        document.getElementById('education').innerHTML = allEducation.map(edu => {
-          const degree = [edu.degree, edu.field || edu.major].filter(Boolean).join(' in ');
-          return `<div class="edu-item"><div class="edu-school">${esc(edu.school || '')}</div>${degree ? `<div class="edu-degree">${esc(degree)}</div>` : ''}</div>`;
-        }).join('');
-        eduSection.style.display = '';
-      } else { eduSection.style.display = 'none'; }
-
-      // Skills
-      const allSkills = [...new Set([...(li?.skills || []), ...(enrichment?.skills || [])])];
-      const skillsSection = document.getElementById('skillsSection');
-      if (allSkills.length) {
-        document.getElementById('skills').innerHTML = allSkills.map(s => `<span class="skill-tag">${esc(s)}</span>`).join('');
-        skillsSection.style.display = '';
-      } else { skillsSection.style.display = 'none'; }
-
-      // Confidence
-      const confSection = document.getElementById('confidenceSection');
-      if (enrichment?.likelihood > 0) {
-        const l = enrichment.likelihood;
-        const cls = l >= 7 ? 'confidence-high' : l >= 4 ? 'confidence-mid' : 'confidence-low';
-        document.getElementById('confidence').innerHTML = `<span class="confidence-badge ${cls}">${l}/10 match confidence</span>`;
-        confSection.style.display = '';
-      } else { confSection.style.display = 'none'; }
-
-      // Social profiles
-      const socials = [...(enrichment?.social_profiles || [])];
-      if (enrichment?.linkedin_url) socials.unshift(enrichment.linkedin_url);
-      if (li?.profile_url) socials.unshift(li.profile_url);
-      const uniqueSocials = [...new Set(socials)];
-      const socialsSection = document.getElementById('socialsSection');
-      if (uniqueSocials.length) {
-        document.getElementById('socials').innerHTML = uniqueSocials.map(url => {
-          let label = 'Link';
-          if (url.includes('linkedin')) label = 'LinkedIn';
-          else if (url.includes('twitter') || url.includes('x.com')) label = 'Twitter';
-          else if (url.includes('github')) label = 'GitHub';
-          return `<a class="social-link" href="${esc(url)}" target="_blank" rel="noopener">${label}: ${esc(url)}</a>`;
-        }).join('');
-        socialsSection.style.display = '';
-      } else { socialsSection.style.display = 'none'; }
-
-      // Sources
-      const sourcesEl = document.getElementById('sources');
-      sourcesEl.innerHTML = (data.source_links || []).map(s => `<a class="source-link" href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`).join('');
-      document.getElementById('sourcesSection').style.display = data.source_links?.length ? '' : 'none';
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = form.name.value.trim();
-      const company = form.company.value.trim();
-      if (!name) return;
-      loading.classList.add('active');
-      card.classList.remove('active');
-      errorEl.style.display = 'none';
-      submitBtn.disabled = true;
-      try {
-        const resp = await fetch('/api/score', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, company: company || null }),
+        savedFounderIds = {};
+        data.founders.forEach(f => {
+          const key = (f.name + '_' + (f.company || '')).toLowerCase();
+          savedFounderIds[key] = f.id;
         });
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({ detail: 'Request failed' }));
-          throw new Error(err.detail || `Error ${resp.status}`);
-        }
-        const resp_data = await resp.json();
-        renderScoreCard(resp_data.card, resp_data.enrichment, resp_data.linkedin);
-        card.classList.add('active');
-      } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.style.display = 'block';
-      } finally {
-        loading.classList.remove('active');
-        submitBtn.disabled = false;
+        updateSavedCount(data.count);
+        renderSavedGrid(data.founders);
+      } catch (e) { console.error('Failed to load saved founders:', e); }
+    }
+
+    function updateSavedCount(count) {
+      document.getElementById('savedCount').textContent = count;
+      const badge = document.getElementById('savedTabCount');
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline';
+        badge.style.background = '#dbeafe';
+        badge.style.color = '#1e40af';
+      } else {
+        badge.style.display = 'none';
       }
-    });
+      document.getElementById('savedEmpty').style.display = count > 0 ? 'none' : '';
+      document.getElementById('savedGrid').style.display = count > 0 ? 'grid' : 'none';
+    }
+
+    function founderKey(name, company) {
+      return (name + '_' + (company || '')).toLowerCase();
+    }
+
+    function isFounderSaved(name, company) {
+      return founderKey(name, company) in savedFounderIds;
+    }
+
+    async function toggleSaveFounder(founderData, btnEl) {
+      const key = founderKey(founderData.name, founderData.company);
+      if (savedFounderIds[key]) {
+        // Unsave
+        try {
+          await fetch('/api/saved/' + savedFounderIds[key], { method: 'DELETE' });
+          delete savedFounderIds[key];
+          btnEl.classList.remove('saved');
+          btnEl.innerHTML = bookmarkOutline + ' Save';
+          showToast('Removed from saved founders');
+          loadSavedFounders();
+        } catch (e) { showToast('Failed to remove'); }
+      } else {
+        // Save
+        try {
+          const resp = await fetch('/api/saved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(founderData),
+          });
+          const result = await resp.json();
+          savedFounderIds[key] = result.id;
+          btnEl.classList.add('saved');
+          btnEl.innerHTML = bookmarkFilled + ' Saved';
+          showToast(result.already_saved ? 'Already saved' : 'Founder saved');
+          loadSavedFounders();
+        } catch (e) { showToast('Failed to save'); }
+      }
+    }
+
+    function buildSavePayload(f) {
+      return {
+        name: f.name,
+        company: f.company || null,
+        role: f.role || null,
+        industry: f.industry || null,
+        stage: f.stage || null,
+        date_founded: f.date_founded || null,
+        product: f.product || null,
+        product_desc: f.product_desc || null,
+        product_eval: f.product_eval || null,
+        source: f.source || null,
+        url: f.url || null,
+        overall_score: f.card ? f.card.overall_score : null,
+        card: f.card || null,
+        enrichment: f.enrichment || null,
+        linkedin: f.linkedin || null,
+      };
+    }
+
+    function renderSavedGrid(founders) {
+      const grid = document.getElementById('savedGrid');
+      if (!founders.length) {
+        grid.innerHTML = '';
+        return;
+      }
+      grid.innerHTML = founders.map(f => {
+        const date = f.saved_at ? new Date(f.saved_at).toLocaleDateString() : '';
+        const details = [
+          f.industry ? `<span class="saved-detail"><span class="slabel">Industry:</span>${esc(f.industry)}</span>` : '',
+          f.stage ? `<span class="saved-detail"><span class="slabel">Stage:</span>${esc(f.stage)}</span>` : '',
+          f.product ? `<span class="saved-detail"><span class="slabel">Product:</span>${esc(f.product)}</span>` : '',
+          f.source ? `<span class="saved-detail"><span class="slabel">Source:</span><span class="source-badge ${sourceBadgeClass(f.source)}" style="font-size:10px">${esc(f.source)}</span></span>` : '',
+        ].filter(Boolean).join('');
+
+        // Product eval mini
+        let peHtml = '';
+        if (f.product_eval && typeof f.product_eval === 'object' && f.product_eval.product_score > 0) {
+          const pe = f.product_eval;
+          const pc = peColor(pe.product_score);
+          const tagClass = (val) => {
+            const v = (val || '').toLowerCase();
+            if (v === 'high' || v === 'strong') return 'pe-tag-high';
+            if (v === 'medium' || v === 'moderate') return 'pe-tag-medium';
+            return 'pe-tag-low';
+          };
+          peHtml = `<div class="product-eval" style="margin-top:8px">
+            <div class="pe-tags">
+              ${pe.market_potential ? `<span class="pe-tag ${tagClass(pe.market_potential)}">Market: ${esc(pe.market_potential)}</span>` : ''}
+              ${pe.innovation_signal ? `<span class="pe-tag ${tagClass(pe.innovation_signal)}">Innovation: ${esc(pe.innovation_signal)}</span>` : ''}
+              ${pe.scalability ? `<span class="pe-tag ${tagClass(pe.scalability)}">Scale: ${esc(pe.scalability)}</span>` : ''}
+              ${pe.product_stage ? `<span class="pe-tag pe-tag-moderate">${esc(pe.product_stage)}</span>` : ''}
+            </div>
+            <div class="pe-verdict">${esc(pe.verdict)}</div>
+          </div>`;
+        }
+
+        return `<div class="saved-card" id="saved-card-${f.id}">
+          <div class="saved-card-header">
+            <div>
+              <div class="saved-name">${esc(f.name)}</div>
+              ${f.company ? `<div class="saved-company">${esc(f.company)}</div>` : ''}
+            </div>
+          </div>
+          <div class="saved-meta">${details}</div>
+          ${peHtml}
+          <div class="notes-area">
+            <textarea placeholder="Add notes..." oninput="autoSaveNotes(${f.id}, this)">${esc(f.notes || '')}</textarea>
+            <div class="notes-saved" id="notes-saved-${f.id}">Saved</div>
+          </div>
+          <div class="saved-date">Saved ${esc(date)}</div>
+          <div class="saved-actions">
+            ${f.url ? `<a class="export-btn" href="${esc(f.url)}" target="_blank" rel="noopener" style="font-size:11px;padding:4px 8px;text-decoration:none">View Source</a>` : ''}
+            <button class="remove-btn" onclick="removeSaved(${f.id})">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              Remove
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Debounced auto-save notes
+    const notesTimers = {};
+    function autoSaveNotes(id, textarea) {
+      clearTimeout(notesTimers[id]);
+      notesTimers[id] = setTimeout(async () => {
+        try {
+          await fetch('/api/saved/' + id + '/notes', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes: textarea.value }),
+          });
+          const indicator = document.getElementById('notes-saved-' + id);
+          if (indicator) {
+            indicator.style.display = 'block';
+            setTimeout(() => indicator.style.display = 'none', 1500);
+          }
+        } catch (e) {}
+      }, 800);
+    }
+
+    async function removeSaved(id) {
+      try {
+        await fetch('/api/saved/' + id, { method: 'DELETE' });
+        // Also update savedFounderIds
+        for (const [key, val] of Object.entries(savedFounderIds)) {
+          if (val === id) { delete savedFounderIds[key]; break; }
+        }
+        showToast('Founder removed');
+        loadSavedFounders();
+      } catch (e) { showToast('Failed to remove'); }
+    }
+
+    function exportFounders(format) {
+      const url = '/api/export/' + format;
+      window.open(url, '_blank');
+    }
+
+    // Load saved founders on page load
+    loadSavedFounders();
 
     // ===== DISCOVER TAB =====
     const discoverForm = document.getElementById('discoverForm');
@@ -575,16 +554,13 @@
 
     function showFounderDetail(idx) {
       const f = discoveredFounders[idx];
-      if (!f || !f.card) return;
+      if (!f) return;
       discoverResults.classList.remove('active');
       founderDetail.classList.add('active');
 
-      const data = f.card;
-      const b = data.breakdown;
-      const color = scoreColor(data.overall_score);
-
       document.getElementById('detailName').textContent = f.name;
       const detailMeta = [
+        f.company ? esc(f.company) : '',
         f.industry ? `Industry: ${esc(f.industry)}` : '',
         f.stage ? `Stage: ${esc(f.stage)}` : '',
         f.date_founded ? `Founded: ${esc(f.date_founded)}` : '',
@@ -592,22 +568,47 @@
       ].filter(Boolean).join('  ·  ');
       const detailBadge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}" style="margin-left:8px">${esc(f.source)}</span>` : '';
       document.getElementById('detailCompany').innerHTML = detailMeta + detailBadge;
-      const ds = document.getElementById('detailScore');
-      ds.textContent = Math.round(data.overall_score);
-      ds.className = `score-number score-${color}`;
-      const db = document.getElementById('detailBar');
-      db.style.width = `${data.overall_score}%`;
-      db.className = `score-bar-inner bar-${color}`;
-      document.getElementById('detailCategories').innerHTML = [
-        renderCategory('Founder Quality', '30%', b.founder_quality, b.founder_quality_rationale),
-        renderCategory('Market', '25%', b.market, b.market_rationale),
-        renderCategory('Traction', '25%', b.traction, b.traction_rationale),
-        renderCategory('Network', '10%', b.network, b.network_rationale),
-        renderCategory('Intangibles', '10%', b.intangibles, b.intangibles_rationale),
-      ].join('');
-      document.getElementById('detailThesis').textContent = data.thesis_fit_summary || 'N/A';
-      document.getElementById('detailRisks').innerHTML = (data.key_risks || []).map(r => `<div class="risk-item">${esc(r)}</div>`).join('');
-      document.getElementById('detailRisksSection').style.display = data.key_risks?.length ? '' : 'none';
+
+      // Product evaluation in detail view
+      const peSection = document.getElementById('detailProductEvalSection');
+      if (f.product_eval && f.product_eval.product_score > 0) {
+        const pe = f.product_eval;
+        const pc = peColor(pe.product_score);
+        const tagClass = (val) => {
+          const v = (val || '').toLowerCase();
+          if (v === 'high' || v === 'strong') return 'pe-tag-high';
+          if (v === 'medium' || v === 'moderate') return 'pe-tag-medium';
+          return 'pe-tag-low';
+        };
+        document.getElementById('detailProductEval').innerHTML = `
+          <div class="product-eval" style="margin:0">
+            <div class="pe-header">
+              <span class="pe-title">Product Score</span>
+              <span class="pe-score" style="color:var(--pe-c,#374151)">${pe.product_score}/100</span>
+            </div>
+            <div class="pe-bar"><div class="pe-bar-fill bar-${pc}" style="width:${pe.product_score}%"></div></div>
+            <div class="pe-tags">
+              ${pe.market_potential ? `<span class="pe-tag ${tagClass(pe.market_potential)}">Market: ${esc(pe.market_potential)}</span>` : ''}
+              ${pe.innovation_signal ? `<span class="pe-tag ${tagClass(pe.innovation_signal)}">Innovation: ${esc(pe.innovation_signal)}</span>` : ''}
+              ${pe.scalability ? `<span class="pe-tag ${tagClass(pe.scalability)}">Scale: ${esc(pe.scalability)}</span>` : ''}
+              ${pe.product_stage ? `<span class="pe-tag pe-tag-moderate">${esc(pe.product_stage)}</span>` : ''}
+            </div>
+            <div class="pe-verdict">${esc(pe.verdict)}</div>
+            ${(pe.strengths && pe.strengths.length) ? `<div class="pe-signals" style="color:#166534">+ ${pe.strengths.map(s => esc(s)).join(' · ')}</div>` : ''}
+            ${(pe.risks && pe.risks.length) ? `<div class="pe-signals" style="color:#b91c1c">- ${pe.risks.map(r => esc(r)).join(' · ')}</div>` : ''}
+          </div>`;
+        peSection.style.display = '';
+      } else { peSection.style.display = 'none'; }
+
+      // Product description
+      if (f.product_desc) {
+        const descEl = document.getElementById('detailProductEval');
+        if (peSection.style.display === 'none') {
+          peSection.style.display = '';
+          descEl.innerHTML = '';
+        }
+        descEl.innerHTML = `<p style="font-size:14px;color:#374151;line-height:1.5;margin-bottom:12px">${esc(f.product_desc)}</p>` + descEl.innerHTML;
+      }
 
       // Experience
       const exp = (f.linkedin?.experience?.length ? f.linkedin.experience : f.enrichment?.experience) || [];
@@ -704,29 +705,68 @@
             f.stage ? `<span class="fdetail"><span class="flabel">Stage:</span>${esc(f.stage)}</span>` : '',
             f.date_founded ? `<span class="fdetail"><span class="flabel">Founded:</span>${esc(f.date_founded)}</span>` : '',
             f.product ? `<span class="fdetail"><span class="flabel">Product:</span>${esc(f.product)}</span>` : '',
-            f.product_desc ? `<span class="fdetail" style="flex-basis:100%;color:#374151;margin-top:4px"><span class="flabel">Building:</span>${esc(f.product_desc)}</span>` : '',
+            f.product_desc ? `<span class="fdetail" style="color:#374151;margin-top:4px"><span class="flabel">Building:</span>${esc(f.product_desc)}</span>` : '',
           ].filter(Boolean).join('');
+
+          // Product evaluation card
+          let evalHtml = '';
+          if (f.product_eval && f.product_eval.product_score > 0) {
+            const pe = f.product_eval;
+            const peColor = pe.product_score >= 65 ? 'green' : (pe.product_score >= 40 ? 'yellow' : 'red');
+            const tagClass = (val) => {
+              const v = (val || '').toLowerCase();
+              if (v === 'high' || v === 'strong') return 'pe-tag-high';
+              if (v === 'medium' || v === 'moderate') return 'pe-tag-medium';
+              return 'pe-tag-low';
+            };
+            const signals = [
+              pe.market_potential ? `<span class="pe-tag ${tagClass(pe.market_potential)}">Market: ${esc(pe.market_potential)}</span>` : '',
+              pe.innovation_signal ? `<span class="pe-tag ${tagClass(pe.innovation_signal)}">Innovation: ${esc(pe.innovation_signal)}</span>` : '',
+              pe.scalability ? `<span class="pe-tag ${tagClass(pe.scalability)}">Scale: ${esc(pe.scalability)}</span>` : '',
+              pe.product_stage ? `<span class="pe-tag pe-tag-moderate">${esc(pe.product_stage)}</span>` : '',
+            ].filter(Boolean).join('');
+            evalHtml = `<div class="product-eval">
+              <div class="pe-header">
+                <span class="pe-title">Product Eval</span>
+                <span class="pe-score score-${peColor}">${pe.product_score}/100</span>
+              </div>
+              <div class="pe-bar"><div class="pe-bar-fill bar-${peColor}" style="width:${pe.product_score}%"></div></div>
+              <div class="pe-tags">${signals}</div>
+              <div class="pe-verdict">${esc(pe.verdict)}</div>
+              ${(pe.strengths && pe.strengths.length) ? `<div class="pe-signals">+ ${pe.strengths.map(s => esc(s)).join(' · ')}</div>` : ''}
+              ${(pe.risks && pe.risks.length) ? `<div class="pe-signals" style="color:#b91c1c">- ${pe.risks.map(r => esc(r)).join(' · ')}</div>` : ''}
+            </div>`;
+          }
+
+          const isSaved = isFounderSaved(f.name, f.company);
+          const saveIcon = isSaved ? bookmarkFilled : bookmarkOutline;
+          const saveClass = isSaved ? 'save-btn saved' : 'save-btn';
+          const saveLabel = isSaved ? 'Saved' : 'Save';
+
           if (f.error) {
             return `<div class="founder-row">
               <div class="rank">#${i + 1}</div>
               <div class="info">
                 <div class="fname">${esc(f.name)}</div>
+                ${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}
                 ${details ? `<div class="fdetails">${details}</div>` : ''}
                 <div class="fmeta" style="margin-top:6px">${badge}</div>
               </div>
+              ${evalHtml}
+              <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
           }
-          const score = f.card ? Math.round(f.card.overall_score) : '?';
-          const color = f.card ? scoreColor(f.card.overall_score) : 'red';
           return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
             <div class="rank">#${i + 1}</div>
             <div class="info">
               <div class="fname">${esc(f.name)}</div>
+              ${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}
               ${details ? `<div class="fdetails">${details}</div>` : ''}
               <div class="fmeta" style="margin-top:6px">${badge}</div>
             </div>
-            <div class="fscore score-${color}">${score}</div>
+            ${evalHtml}
+            <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
           </div>`;
         }).join('');
 
@@ -738,6 +778,44 @@
         discoverLoading.classList.remove('active');
         discoverBtn.disabled = false;
       }
+    });
+
+    // --- Save from discovered founders ---
+    let currentDetailIdx = null;
+
+    function saveDiscoveredFounder(idx, btnEl) {
+      const f = discoveredFounders[idx];
+      if (!f) return;
+      toggleSaveFounder(buildSavePayload(f), btnEl);
+    }
+
+    function saveFromDetail(btnEl) {
+      if (currentDetailIdx == null) return;
+      const f = discoveredFounders[currentDetailIdx];
+      if (!f) return;
+      toggleSaveFounder(buildSavePayload(f), btnEl);
+    }
+
+    // Override showFounderDetail to track current index and update detail save button
+    const _origShowDetail = showFounderDetail;
+    showFounderDetail = function(idx) {
+      currentDetailIdx = idx;
+      _origShowDetail(idx);
+      // Update detail save button state
+      const f = discoveredFounders[idx];
+      const detailBtn = document.getElementById('detailSaveBtn');
+      if (f && detailBtn) {
+        const saved = isFounderSaved(f.name, f.company);
+        detailBtn.className = saved ? 'save-btn saved' : 'save-btn';
+        detailBtn.innerHTML = (saved ? bookmarkFilled : bookmarkOutline) + (saved ? ' Saved' : ' Save');
+      }
+    };
+
+    // Refresh saved tab when switching to it
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (tab.dataset.tab === 'saved') loadSavedFounders();
+      });
     });
   </script>
 </body>
