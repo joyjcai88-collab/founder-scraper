@@ -172,13 +172,17 @@ async def discover_founders(
         active_sources = [SOURCE_MAP[s] for s in DEFAULT_SOURCES]
 
     # Build base criteria string from filters
-    criteria_parts = [sanitize_input(industry)]
+    criteria_parts = []
+    if industry:
+        criteria_parts.append(sanitize_input(industry))
     if stage:
         criteria_parts.append(sanitize_input(stage))
     if product:
         criteria_parts.append(sanitize_input(product))
     if date_founded:
         criteria_parts.append(f"founded {sanitize_input(date_founded)}")
+    if not criteria_parts:
+        criteria_parts.append("startup founder")
     criteria = " ".join(criteria_parts)
 
     # Search each source and collect results

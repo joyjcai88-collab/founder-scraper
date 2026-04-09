@@ -50,7 +50,7 @@ class ScoreRequest(BaseModel):
 
 
 class DiscoverRequest(BaseModel):
-    industry: str = Field(min_length=1, max_length=200)
+    industry: Optional[str] = None
     stage: Optional[str] = None
     product: Optional[str] = None
     date_founded: Optional[str] = None
@@ -191,14 +191,16 @@ async def api_score(req: ScoreRequest) -> ScoreResponse:
 async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
     """Discover founders by company criteria (industry, stage, product, date)."""
     # Build a human-readable query summary
-    parts = [sanitize_input(req.industry)]
+    parts = []
+    if req.industry:
+        parts.append(sanitize_input(req.industry))
     if req.stage:
         parts.append(sanitize_input(req.stage))
     if req.product:
         parts.append(sanitize_input(req.product))
     if req.date_founded:
         parts.append(f"founded {sanitize_input(req.date_founded)}")
-    query_summary = " / ".join(parts)
+    query_summary = " / ".join(parts) if parts else "All founders"
 
     # Discover founders via multi-source search
     raw_founders = await discover_founders(
@@ -214,7 +216,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         return DiscoverResponse(query=query_summary, founders=[])
 
     # Search criteria to attach to each result
-    s_industry = sanitize_input(req.industry)
+    s_industry = sanitize_input(req.industry) if req.industry else None
     s_stage = sanitize_input(req.stage) if req.stage else None
     s_product = sanitize_input(req.product) if req.product else None
     s_date = sanitize_input(req.date_founded) if req.date_founded else None

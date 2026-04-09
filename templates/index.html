@@ -190,7 +190,7 @@
     <!-- ===== DISCOVER TAB ===== -->
     <div class="tab-panel active" id="panel-discover">
       <form class="discover-form" id="discoverForm">
-        <input type="text" name="industry" placeholder="Industry (e.g., AI, Fintech, HealthTech)" required>
+        <input type="text" name="industry" placeholder="Industry (e.g., AI, Fintech, HealthTech)">
         <select name="stage">
           <option value="">Any Stage</option>
           <option value="Pre-seed">Pre-seed</option>
@@ -655,11 +655,16 @@
     discoverForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const industry = discoverForm.industry.value.trim();
-      if (!industry) return;
-
       const stage = discoverForm.stage.value;
       const product = discoverForm.product.value.trim();
       const date_founded = discoverForm.date_founded.value.trim();
+
+      // Need at least one field filled
+      if (!industry && !stage && !product && !date_founded) {
+        discoverError.textContent = 'Please fill in at least one search field.';
+        discoverError.style.display = 'block';
+        return;
+      }
 
       discoverLoading.classList.add('active');
       discoverResults.classList.remove('active');
