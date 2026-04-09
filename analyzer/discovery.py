@@ -20,11 +20,14 @@ Sources searched:
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from scraper.safety import sanitize_input
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Source definitions
@@ -191,16 +194,15 @@ async def discover_founders(
 
     try:
         from ddgs import DDGS
-        ddgs = DDGS()
     except ImportError:
         try:
             from duckduckgo_search import DDGS
-            ddgs = DDGS()
         except ImportError:
+            logger.error("No DuckDuckGo search package available")
             return []
 
     # Calculate results per source to balance coverage
-    per_source = max(3, (limit * 2) // len(active_sources))
+    per_source = max(5, (limit * 3) // len(active_sources))
 
     for source in active_sources:
         if len(all_results) >= limit:
@@ -210,10 +212,21 @@ async def discover_founders(
         if source.extra_keywords:
             query += f" {source.extra_keywords}"
 
+        raw_results = []
         try:
+            ddgs = DDGS()
             raw_results = list(ddgs.text(query, max_results=per_source))
-        except Exception:
-            continue
+            logger.info("Source %s: query=%r → %d raw results", source.key, query[:80], len(raw_results))
+        except Exception as exc:
+            logger.warning("Source %s failed: %s", source.key, exc)
+            # Retry once with a fresh instance
+            try:
+                ddgs = DDGS()
+                raw_results = list(ddgs.text(query, max_results=per_source))
+                logger.info("Source %s retry succeeded: %d results", source.key, len(raw_results))
+            except Exception as exc2:
+                logger.warning("Source %s retry also failed: %s", source.key, exc2)
+                continue
 
         for item in raw_results:
             if len(all_results) >= limit:
@@ -225,6 +238,7 @@ async def discover_founders(
 
             # Validate URL matches the source pattern
             if not re.search(source.url_pattern, href, re.IGNORECASE):
+                logger.debug("SKIP url mismatch: %s", href[:80])
                 continue
 
             # Parse based on source type
@@ -240,10 +254,12 @@ async def discover_founders(
                 parsed = _parse_generic(href, title, body)
 
             if not parsed or not parsed.get("name"):
+                logger.debug("SKIP no name parsed from: %s", title[:60])
                 continue
 
             # Only keep results with real person names
             if not _looks_like_person_name(parsed["name"]):
+                logger.debug("SKIP not a person name: %r", parsed["name"])
                 continue
 
             # Try to fill in company if missing
@@ -264,6 +280,7 @@ async def discover_founders(
             has_company = bool((parsed.get("company") or "").strip())
             has_product = bool((parsed.get("product_desc") or "").strip())
             if not has_company and not has_product:
+                logger.debug("SKIP no company or product: %s", parsed["name"])
                 continue
 
             # Deduplicate by normalized name
@@ -275,6 +292,7 @@ async def discover_founders(
             parsed["source"] = source.label
             parsed["url"] = href
             all_results.append(parsed)
+            logger.info("FOUND: %s @ %s [%s]", parsed["name"], parsed.get("company", "?"), source.key)
 
     return all_results
 
@@ -294,7 +312,7 @@ _NOT_A_PERSON = {
     "product hunt", "producthunt", "angellist", "wellfound", "techstars",
     "y combinator", "on deck", "buildspace", "pioneer", "substack",
     "entrepreneur first", "medium", "startups", "companies", "funded",
-    "health tech", "fintech", "ai", "saas", "series", "seed", "pre-seed",
+    "health tech", "fintech", "saas", "series", "seed", "pre-seed",
 }
 
 # Job titles that get mistaken for names
@@ -349,7 +367,8 @@ def _looks_like_person_name(name: str) -> bool:
     non_name = {"the", "for", "and", "with", "how", "why", "what", "top",
                 "best", "new", "app", "tool", "tools", "platform", "powering",
                 "makers", "devops", "software", "startup", "startups", "tech",
-                "digital", "global", "review", "list", "guide", "free"}
+                "digital", "global", "review", "list", "guide", "free",
+                "ai", "nvidia", "google", "amazon", "meta", "apple", "microsoft"}
     if lower_words & non_name:
         return False
     return True

@@ -1,8 +1,12 @@
 """FastAPI web interface for the founder scraper."""
 
 import asyncio
+import logging
 from functools import partial
 from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 from typing import List, Optional, Dict, Any
 
 from dotenv import load_dotenv
@@ -212,6 +216,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         sources=req.sources,
     )
 
+    logger.info("Discovery returned %d raw founders for query: %s", len(raw_founders), query_summary)
     if not raw_founders:
         return DiscoverResponse(query=query_summary, founders=[])
 
