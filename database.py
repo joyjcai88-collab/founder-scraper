@@ -1,6 +1,7 @@
 """SQLite database for saved founder profiles."""
 
 import json
+import os
 import sqlite3
 import csv
 import io
@@ -9,13 +10,18 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 
-DB_PATH = Path(__file__).parent / "founders.db"
+# Use /tmp on Vercel (read-only filesystem), project dir locally
+if os.environ.get("VERCEL"):
+    DB_PATH = Path("/tmp/founders.db")
+else:
+    DB_PATH = Path(__file__).parent / "founders.db"
 
 
 def _get_conn() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
+    if not os.environ.get("VERCEL"):
+        conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
 
