@@ -216,7 +216,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
         sources=req.sources,
     )
 
-    logger.info("Discovery returned %d raw founders for query: %s", len(raw_founders), query_summary)
+    print(f"[server] Discovery returned {len(raw_founders)} raw founders for query: {query_summary}", flush=True)
     if not raw_founders:
         return DiscoverResponse(query=query_summary, founders=[])
 
@@ -316,6 +316,30 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
 async def api_sources():
     """Return available discovery sources."""
     return get_available_sources()
+
+
+@app.get("/api/debug/search")
+async def api_debug_search(q: str = "AI startup founder"):
+    """Lightweight diagnostic: test DuckDuckGo search from this server."""
+    try:
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            from duckduckgo_search import DDGS
+        ddgs = DDGS()
+        results = list(ddgs.text(q, max_results=3))
+        print(f"[debug] DDG search for {q!r} returned {len(results)} results", flush=True)
+        return {
+            "query": q,
+            "count": len(results),
+            "results": [
+                {"title": r.get("title", "")[:100], "href": r.get("href", ""), "body": r.get("body", "")[:200]}
+                for r in results
+            ],
+        }
+    except Exception as exc:
+        print(f"[debug] DDG search FAILED: {exc}", flush=True)
+        return {"query": q, "count": 0, "error": str(exc)}
 
 
 # --- Saved Founders endpoints ---

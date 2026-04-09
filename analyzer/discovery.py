@@ -216,16 +216,16 @@ async def discover_founders(
         try:
             ddgs = DDGS()
             raw_results = list(ddgs.text(query, max_results=per_source))
-            logger.info("Source %s: query=%r → %d raw results", source.key, query[:80], len(raw_results))
+            print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
         except Exception as exc:
-            logger.warning("Source %s failed: %s", source.key, exc)
+            print(f"[discovery] Source {source.key} FAILED: {exc}", flush=True)
             # Retry once with a fresh instance
             try:
                 ddgs = DDGS()
                 raw_results = list(ddgs.text(query, max_results=per_source))
-                logger.info("Source %s retry succeeded: %d results", source.key, len(raw_results))
+                print(f"[discovery] Source {source.key} retry OK: {len(raw_results)} results", flush=True)
             except Exception as exc2:
-                logger.warning("Source %s retry also failed: %s", source.key, exc2)
+                print(f"[discovery] Source {source.key} retry FAILED: {exc2}", flush=True)
                 continue
 
         for item in raw_results:
@@ -238,7 +238,7 @@ async def discover_founders(
 
             # Validate URL matches the source pattern
             if not re.search(source.url_pattern, href, re.IGNORECASE):
-                logger.debug("SKIP url mismatch: %s", href[:80])
+                print(f"[discovery] SKIP url mismatch: {href[:80]}", flush=True)
                 continue
 
             # Parse based on source type
@@ -254,12 +254,12 @@ async def discover_founders(
                 parsed = _parse_generic(href, title, body)
 
             if not parsed or not parsed.get("name"):
-                logger.debug("SKIP no name parsed from: %s", title[:60])
+                print(f"[discovery] SKIP no name parsed from: {title[:60]}", flush=True)
                 continue
 
             # Only keep results with real person names
             if not _looks_like_person_name(parsed["name"]):
-                logger.debug("SKIP not a person name: %r", parsed["name"])
+                print(f"[discovery] SKIP not a person name: {parsed['name']!r}", flush=True)
                 continue
 
             # Try to fill in company if missing
@@ -280,7 +280,7 @@ async def discover_founders(
             has_company = bool((parsed.get("company") or "").strip())
             has_product = bool((parsed.get("product_desc") or "").strip())
             if not has_company and not has_product:
-                logger.debug("SKIP no company or product: %s", parsed["name"])
+                print(f"[discovery] SKIP no company or product: {parsed['name']}", flush=True)
                 continue
 
             # Deduplicate by normalized name
@@ -292,7 +292,7 @@ async def discover_founders(
             parsed["source"] = source.label
             parsed["url"] = href
             all_results.append(parsed)
-            logger.info("FOUND: %s @ %s [%s]", parsed["name"], parsed.get("company", "?"), source.key)
+            print(f"[discovery] FOUND: {parsed['name']} @ {parsed.get('company', '?')} [{source.key}]", flush=True)
 
     return all_results
 
