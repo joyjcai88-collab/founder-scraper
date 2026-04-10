@@ -192,41 +192,26 @@ async def discover_founders(
     all_results: List[Dict[str, str]] = []
     seen_names: set = set()
 
-    try:
-        from ddgs import DDGS
-    except ImportError:
-        try:
-            from duckduckgo_search import DDGS
-        except ImportError:
-            logger.error("No DuckDuckGo search package available")
-            return []
+    import asyncio
+    from scraper.ddg import ddg_search
 
     # Calculate results per source to balance coverage
     per_source = max(5, (limit * 3) // len(active_sources))
 
-    for source in active_sources:
+    for idx, source in enumerate(active_sources):
         if len(all_results) >= limit:
             break
+
+        # Small delay between sources to avoid rate limiting
+        if idx > 0:
+            await asyncio.sleep(0.5)
 
         query = f"{source.site_query} {criteria}"
         if source.extra_keywords:
             query += f" {source.extra_keywords}"
 
-        raw_results = []
-        try:
-            ddgs = DDGS()
-            raw_results = list(ddgs.text(query, max_results=per_source))
-            print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
-        except Exception as exc:
-            print(f"[discovery] Source {source.key} FAILED: {exc}", flush=True)
-            # Retry once with a fresh instance
-            try:
-                ddgs = DDGS()
-                raw_results = list(ddgs.text(query, max_results=per_source))
-                print(f"[discovery] Source {source.key} retry OK: {len(raw_results)} results", flush=True)
-            except Exception as exc2:
-                print(f"[discovery] Source {source.key} retry FAILED: {exc2}", flush=True)
-                continue
+        raw_results = ddg_search(query, max_results=per_source)
+        print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
 
         for item in raw_results:
             if len(all_results) >= limit:
@@ -527,23 +512,41 @@ def _parse_crunchbase(href: str, title: str, body: str) -> Optional[Dict[str, st
     if not slug_match:
         return None
 
-    # Title: "Name - Crunchbase Person Profile" or "Name | Crunchbase"
-    name = re.sub(r"\s*[\|·\-]\s*Crunchbase.*$", "", title, flags=re.IGNORECASE).strip()
+    # Title formats from DDG:
+    #   "Sam Altman - Co-Founder and CEO @ OpenAI - Crunchbase Person Profile"
+    #   "Name | Crunchbase"
+    #   "Name - Crunchbase Person Profile"
+    name = title
 
-    # Try to find company/role in body
+    # Strip Crunchbase suffix first
+    name = re.sub(r"\s*[\|·\-]\s*Crunchbase.*$", "", name, flags=re.IGNORECASE).strip()
+    # Strip role/company suffix: "Name - Role @ Company" or "Name - Role"
+    name = re.sub(r"\s*[\-]\s*(?:Co-?)?(?:Founder|CEO|CTO|COO|President|Managing|Partner|General).*$",
+                  "", name, flags=re.IGNORECASE).strip()
+
+    # Try to find company/role in title and body
     company = ""
     role = "Founder"
 
-    # Body snippets often mention "Founder of X" or "CEO at X"
-    role_match = re.search(
-        r"(?:founder|co-founder|CEO|CTO)\s+(?:of|at)\s+([A-Z][a-zA-Z0-9\s&.]+?)(?:\.|,|\s{2}|$)",
-        body, re.IGNORECASE
-    )
-    if role_match:
-        company = role_match.group(1).strip()
-        role_type = re.search(r"(founder|co-founder|CEO|CTO)", body, re.IGNORECASE)
+    # Check title for "@ Company" pattern
+    at_match = re.search(r"[@]\s*([A-Z][a-zA-Z0-9\s&.]+?)(?:\s*[-|]|$)", title)
+    if at_match:
+        company = at_match.group(1).strip()
+        role_type = re.search(r"(Co-?Founder|Founder|CEO|CTO|COO)", title, re.IGNORECASE)
         if role_type:
-            role = role_type.group(1).title()
+            role = role_type.group(1).replace("-", "-")
+
+    # Fallback: Body snippets often mention "Founder of X" or "CEO at X"
+    if not company:
+        role_match = re.search(
+            r"(?:founder|co-founder|CEO|CTO)\s+(?:of|at)\s+([A-Z][a-zA-Z0-9\s&.]+?)(?:\.|,|\s{2}|$)",
+            body, re.IGNORECASE
+        )
+        if role_match:
+            company = role_match.group(1).strip()
+            role_type = re.search(r"(founder|co-founder|CEO|CTO)", body, re.IGNORECASE)
+            if role_type:
+                role = role_type.group(1).title()
 
     return {"name": name, "company": company, "role": role, "product_desc": _extract_product(body)}
 
