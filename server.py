@@ -320,11 +320,14 @@ async def api_sources():
 
 @app.get("/api/debug/search")
 async def api_debug_search(q: str = "AI startup founder"):
-    """Lightweight diagnostic: test DuckDuckGo search from this server."""
-    from scraper.ddg import ddg_search
-    results = ddg_search(q, max_results=3)
+    """Diagnostic: test multi-engine search from this server."""
+    from scraper.multi_search import multi_search
+    from scraper.google_search import is_google_configured
+    results = multi_search(q, max_results=5)
+    engines = ["google", "ddg"] if is_google_configured() else ["ddg", "brave"]
     return {
         "query": q,
+        "engines": engines,
         "count": len(results),
         "results": [
             {"title": r.get("title", "")[:100], "href": r.get("href", ""), "body": r.get("body", "")[:200]}

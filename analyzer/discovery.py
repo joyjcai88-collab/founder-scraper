@@ -193,7 +193,7 @@ async def discover_founders(
     seen_names: set = set()
 
     import asyncio
-    from scraper.ddg import ddg_search
+    from scraper.multi_search import multi_search
 
     # Calculate results per source to balance coverage
     per_source = max(5, (limit * 3) // len(active_sources))
@@ -210,7 +210,7 @@ async def discover_founders(
         if source.extra_keywords:
             query += f" {source.extra_keywords}"
 
-        raw_results = ddg_search(query, max_results=per_source)
+        raw_results = multi_search(query, max_results=per_source)
         print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
 
         for item in raw_results:
@@ -462,6 +462,19 @@ def _parse_linkedin(href: str, title: str, body: str = "") -> Optional[Dict[str,
     name = re.sub(r"\s+", " ", name).strip()
     role = re.sub(r"\s+", " ", role).strip()
     company = re.sub(r"\s+", " ", company).strip()
+
+    # Clean up company — extract just the company name from long headlines
+    # e.g. "Coinscrap Finance | LinkedIn Top Voice | Reshaping Fintech" → "Coinscrap Finance"
+    if company and "|" in company:
+        company = company.split("|")[0].strip()
+    # Truncate overly long company strings (likely a headline, not a company)
+    if len(company) > 40:
+        # Try to extract the core company name
+        co_match = re.match(r"([A-Z][a-zA-Z0-9\s&.]+?)(?:\s*[|,\-·]|\s+(?:Inc|LLC|Ltd|Corp))", company)
+        if co_match:
+            company = co_match.group(1).strip()
+        else:
+            company = company[:40].rsplit(" ", 1)[0].strip()
 
     # If no company from title, try to extract from body
     if not company and body:
