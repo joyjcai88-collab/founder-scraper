@@ -174,19 +174,22 @@ async def discover_founders(
     if not active_sources:
         active_sources = [SOURCE_MAP[s] for s in DEFAULT_SOURCES]
 
-    # Build base criteria string from filters
-    criteria_parts = []
+    # Build search criteria — separate core terms from stage/date modifiers.
+    # Stage terms (e.g. "Pre-seed", "Series A") rarely appear on profile pages,
+    # so they shouldn't be required in site-restricted queries. Instead, we use
+    # them only in open-web fallback queries and for result filtering.
+    core_parts = []
     if industry:
-        criteria_parts.append(sanitize_input(industry))
-    if stage:
-        criteria_parts.append(sanitize_input(stage))
+        core_parts.append(sanitize_input(industry))
     if product:
-        criteria_parts.append(sanitize_input(product))
-    if date_founded:
-        criteria_parts.append(f"founded {sanitize_input(date_founded)}")
-    if not criteria_parts:
-        criteria_parts.append("startup founder")
-    criteria = " ".join(criteria_parts)
+        core_parts.append(sanitize_input(product))
+    if not core_parts:
+        core_parts.append("startup")
+    core_criteria = " ".join(core_parts)
+
+    # Stage and date are "soft" modifiers — used in fallback queries only
+    stage_term = sanitize_input(stage) if stage else ""
+    date_term = f"founded {sanitize_input(date_founded)}" if date_founded else ""
 
     # Search each source and collect results
     all_results: List[Dict[str, str]] = []
@@ -202,15 +205,31 @@ async def discover_founders(
         if len(all_results) >= limit:
             break
 
-        # Small delay between sources to avoid rate limiting
+        # Delay between sources to avoid rate limiting (longer for later sources)
         if idx > 0:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.0 + (idx * 0.5))
 
-        query = f"{source.site_query} {criteria}"
+        # Primary query: site-restricted with core industry/product terms only
+        query = f"{source.site_query} {core_criteria}"
         if source.extra_keywords:
             query += f" {source.extra_keywords}"
 
         raw_results = multi_search(query, max_results=per_source)
+
+        # If site-restricted query returned nothing, try open-web fallback
+        # with the full criteria (industry + stage + source name)
+        if not raw_results:
+            fallback_parts = [core_criteria]
+            if stage_term:
+                fallback_parts.append(stage_term)
+            if date_term:
+                fallback_parts.append(date_term)
+            fallback_parts.append(source.label)
+            fallback_parts.append("founder")
+            fallback_query = " ".join(fallback_parts)
+
+            await asyncio.sleep(0.5)
+            raw_results = multi_search(fallback_query, max_results=per_source)
         print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
 
         for item in raw_results:

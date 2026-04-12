@@ -44,20 +44,34 @@ def ddg_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
     results: List[Dict[str, str]] = []
 
     url = "https://html.duckduckgo.com/html/"
-    headers = {
-        "User-Agent": _random_ua(),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-    }
     data = {"q": query, "b": ""}
 
-    try:
-        with httpx.Client(follow_redirects=True, timeout=15.0) as client:
-            resp = client.post(url, headers=headers, data=data)
-            resp.raise_for_status()
-            html = resp.text
-    except Exception as exc:
-        print(f"[ddg] Search request failed: {exc}", flush=True)
+    html = None
+    for attempt in range(3):
+        headers = {
+            "User-Agent": _random_ua(),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        try:
+            with httpx.Client(follow_redirects=True, timeout=15.0) as client:
+                resp = client.post(url, headers=headers, data=data)
+                # DDG returns 200 but with a CAPTCHA/empty page when rate-limited
+                if resp.status_code == 202 or resp.status_code == 429:
+                    import time
+                    wait = (2 ** attempt) + random.uniform(0.5, 1.5)
+                    print(f"[ddg] Rate limited ({resp.status_code}), retrying in {wait:.1f}s", flush=True)
+                    time.sleep(wait)
+                    continue
+                resp.raise_for_status()
+                html = resp.text
+                break
+        except Exception as exc:
+            print(f"[ddg] Search request failed: {exc}", flush=True)
+            return results
+
+    if not html:
+        print(f"[ddg] Exhausted retries for query={query[:60]!r}", flush=True)
         return results
 
     # --- Parse: extract each result__a (title+href) and result__snippet (body) ---

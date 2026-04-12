@@ -10,6 +10,8 @@ Both engines are used per query for redundancy. No API keys needed.
 
 from __future__ import annotations
 
+import time
+import random
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -30,7 +32,11 @@ def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
     all_results: List[Dict[str, str]] = []
     seen_urls: set = set()
 
-    for engine_name, search_fn in engines:
+    for i, (engine_name, search_fn) in enumerate(engines):
+        # Small delay between engines to avoid triggering rate limits
+        if i > 0:
+            time.sleep(random.uniform(0.3, 0.8))
+
         try:
             results = search_fn(query, max_results=max_results)
         except Exception as exc:

@@ -39,23 +39,33 @@ def brave_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
     results: List[Dict[str, str]] = []
 
     url = "https://search.brave.com/search"
-    headers = {
-        "User-Agent": random.choice(_USER_AGENTS),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate",  # avoid brotli (not always available)
-    }
 
-    try:
-        with httpx.Client(follow_redirects=True, timeout=15.0) as client:
-            resp = client.get(url, headers=headers, params={"q": query})
-            if resp.status_code == 429:
-                print(f"[brave] Rate limited (429), skipping", flush=True)
-                return results
-            resp.raise_for_status()
-            html = resp.text
-    except Exception as exc:
-        print(f"[brave] Search request failed: {exc}", flush=True)
+    html = None
+    for attempt in range(3):
+        headers = {
+            "User-Agent": random.choice(_USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate",
+        }
+        try:
+            with httpx.Client(follow_redirects=True, timeout=15.0) as client:
+                resp = client.get(url, headers=headers, params={"q": query})
+                if resp.status_code == 429:
+                    import time
+                    wait = (2 ** attempt) + random.uniform(1.0, 3.0)
+                    print(f"[brave] Rate limited (429), retrying in {wait:.1f}s (attempt {attempt + 1}/3)", flush=True)
+                    time.sleep(wait)
+                    continue
+                resp.raise_for_status()
+                html = resp.text
+                break
+        except Exception as exc:
+            print(f"[brave] Search request failed: {exc}", flush=True)
+            return results
+
+    if not html:
+        print(f"[brave] Exhausted retries for query={query[:60]!r}", flush=True)
         return results
 
     # --- Parse result blocks ---
