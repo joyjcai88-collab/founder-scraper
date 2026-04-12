@@ -24,6 +24,7 @@ class CrunchbaseData(BaseModel):
     total_funding: Optional[str] = None
     prior_companies: List[str] = Field(default_factory=list)
     location: Optional[str] = None
+    investors: List[str] = Field(default_factory=list)
 
 
 class TwitterData(BaseModel):
@@ -109,6 +110,23 @@ class FounderProfile(BaseModel):
                 parts.append(f"Description: {self.crunchbase.company_description}")
             if self.crunchbase.total_funding:
                 parts.append(f"Total funding: {self.crunchbase.total_funding}")
+            if self.crunchbase.funding_rounds:
+                parts.append("Funding Rounds:")
+                for fr in self.crunchbase.funding_rounds[:8]:
+                    round_type = fr.get("type", "Unknown")
+                    amount = fr.get("amount", "")
+                    date = fr.get("date", "")
+                    lead = fr.get("lead_investors", [])
+                    line = f"  - {round_type}"
+                    if amount:
+                        line += f": {amount}"
+                    if date:
+                        line += f" ({date})"
+                    if lead:
+                        line += f" — led by {', '.join(lead)}"
+                    parts.append(line)
+            if self.crunchbase.investors:
+                parts.append(f"Investors: {', '.join(self.crunchbase.investors)}")
             if self.crunchbase.prior_companies:
                 parts.append(f"Prior companies: {', '.join(self.crunchbase.prior_companies)}")
             if self.crunchbase.location:

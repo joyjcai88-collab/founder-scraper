@@ -141,7 +141,7 @@ async def run(name: str, company: str | None = None) -> None:
 
 
 def main() -> None:
-    load_dotenv()
+    load_dotenv(override=True)
 
     parser = argparse.ArgumentParser(
         description="AI-powered founder enrichment and scoring for VC deal flow.",

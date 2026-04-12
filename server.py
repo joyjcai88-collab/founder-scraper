@@ -38,7 +38,7 @@ from database import (
     export_json,
 )
 
-load_dotenv()
+load_dotenv(override=True)
 
 app = FastAPI(title="Founder Scraper")
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -322,12 +322,10 @@ async def api_sources():
 async def api_debug_search(q: str = "AI startup founder"):
     """Diagnostic: test multi-engine search from this server."""
     from scraper.multi_search import multi_search
-    from scraper.google_search import is_google_configured
     results = multi_search(q, max_results=5)
-    engines = ["google", "ddg"] if is_google_configured() else ["ddg", "brave"]
     return {
         "query": q,
-        "engines": engines,
+        "engines": ["ddg", "brave"],
         "count": len(results),
         "results": [
             {"title": r.get("title", "")[:100], "href": r.get("href", ""), "body": r.get("body", "")[:200]}

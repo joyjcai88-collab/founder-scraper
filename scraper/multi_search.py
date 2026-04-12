@@ -1,12 +1,11 @@
-"""Multi-engine search: combines DuckDuckGo, Google, and Brave for better coverage.
+"""Multi-engine search: combines DuckDuckGo and Brave for better coverage.
 
 Runs two search engines per query and merges/deduplicates results.
-Engine priority:
-  1. Google Custom Search (if GOOGLE_API_KEY + GOOGLE_CSE_ID are set)
-  2. DuckDuckGo HTML (always available)
-  3. Brave Search HTML (always available, used as secondary)
+Engines:
+  1. DuckDuckGo HTML (always available, primary)
+  2. Brave Search HTML (always available, secondary)
 
-Two engines are always used per query for redundancy.
+Both engines are used per query for redundancy. No API keys needed.
 """
 
 from __future__ import annotations
@@ -16,7 +15,6 @@ from urllib.parse import urlparse
 
 from scraper.ddg import ddg_search
 from scraper.brave_search import brave_search
-from scraper.google_search import google_search, is_google_configured
 
 
 def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
@@ -24,17 +22,10 @@ def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
 
     Returns deduplicated [{title, href, body}] — same format as ddg_search.
     """
-    # Pick engines: Google (if configured) + DDG, otherwise DDG + Brave
-    if is_google_configured():
-        engines = [
-            ("google", google_search),
-            ("ddg", ddg_search),
-        ]
-    else:
-        engines = [
-            ("ddg", ddg_search),
-            ("brave", brave_search),
-        ]
+    engines = [
+        ("ddg", ddg_search),
+        ("brave", brave_search),
+    ]
 
     all_results: List[Dict[str, str]] = []
     seen_urls: set = set()
