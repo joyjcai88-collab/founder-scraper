@@ -1,4 +1,4 @@
-"""Pure-Python Brave Search via httpx.
+"""Pure-Python Brave Search via httpx (async).
 
 Second search engine alongside DuckDuckGo for better coverage.
 No API key needed — scrapes Brave's HTML search results.
@@ -6,6 +6,7 @@ No API key needed — scrapes Brave's HTML search results.
 
 from __future__ import annotations
 
+import asyncio
 import re
 import random
 from typing import Dict, List
@@ -21,7 +22,7 @@ _USER_AGENTS = [
 ]
 
 
-def brave_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
+async def brave_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
     """Search Brave and return a list of {title, href, body} dicts.
 
     Uses Brave Search HTML page — same return format as ddg_search().
@@ -49,13 +50,12 @@ def brave_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
             "Accept-Encoding": "gzip, deflate",
         }
         try:
-            with httpx.Client(follow_redirects=True, timeout=15.0) as client:
-                resp = client.get(url, headers=headers, params={"q": query})
+            async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+                resp = await client.get(url, headers=headers, params={"q": query})
                 if resp.status_code == 429:
-                    import time
                     wait = (2 ** attempt) + random.uniform(1.0, 3.0)
                     print(f"[brave] Rate limited (429), retrying in {wait:.1f}s (attempt {attempt + 1}/3)", flush=True)
-                    time.sleep(wait)
+                    await asyncio.sleep(wait)
                     continue
                 resp.raise_for_status()
                 html = resp.text

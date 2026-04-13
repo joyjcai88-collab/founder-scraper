@@ -1,4 +1,4 @@
-"""Pure-Python DuckDuckGo text search via httpx.
+"""Pure-Python DuckDuckGo text search via httpx (async).
 
 Replaces the `ddgs` package which depends on `primp` (a Rust native binary
 that fails to install on Vercel's serverless runtime).
@@ -8,6 +8,7 @@ Uses DuckDuckGo's HTML endpoint — no API key needed.
 
 from __future__ import annotations
 
+import asyncio
 import re
 import random
 from typing import Dict, List
@@ -27,7 +28,7 @@ def _random_ua() -> str:
     return random.choice(_USER_AGENTS)
 
 
-def ddg_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
+async def ddg_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
     """Search DuckDuckGo and return a list of {title, href, body} dicts.
 
     Uses the DuckDuckGo HTML-only endpoint (html.duckduckgo.com) which
@@ -54,14 +55,13 @@ def ddg_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
             "Accept-Language": "en-US,en;q=0.9",
         }
         try:
-            with httpx.Client(follow_redirects=True, timeout=15.0) as client:
-                resp = client.post(url, headers=headers, data=data)
-                # DDG returns 200 but with a CAPTCHA/empty page when rate-limited
-                if resp.status_code == 202 or resp.status_code == 429:
-                    import time
+            async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+                resp = await client.post(url, headers=headers, data=data)
+                # DDG returns 202 or 429 when rate-limited
+                if resp.status_code in (202, 429):
                     wait = (2 ** attempt) + random.uniform(0.5, 1.5)
                     print(f"[ddg] Rate limited ({resp.status_code}), retrying in {wait:.1f}s", flush=True)
-                    time.sleep(wait)
+                    await asyncio.sleep(wait)
                     continue
                 resp.raise_for_status()
                 html = resp.text

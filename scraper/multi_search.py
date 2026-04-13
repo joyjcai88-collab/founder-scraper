@@ -1,17 +1,16 @@
 """Multi-engine search: combines DuckDuckGo and Brave for better coverage.
 
-Runs two search engines per query and merges/deduplicates results.
+Runs both search engines **in parallel** per query and merges/deduplicates results.
 Engines:
   1. DuckDuckGo HTML (always available, primary)
   2. Brave Search HTML (always available, secondary)
 
-Both engines are used per query for redundancy. No API keys needed.
+Both engines run concurrently via asyncio.gather(). No API keys needed.
 """
 
 from __future__ import annotations
 
-import time
-import random
+import asyncio
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -19,33 +18,24 @@ from scraper.ddg import ddg_search
 from scraper.brave_search import brave_search
 
 
-def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
-    """Search with two engines and merge results.
+async def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
+    """Search with two engines in parallel and merge results.
 
     Returns deduplicated [{title, href, body}] — same format as ddg_search.
     """
-    engines = [
-        ("ddg", ddg_search),
-        ("brave", brave_search),
-    ]
+    # Run both engines concurrently
+    ddg_task = asyncio.create_task(_safe_search("ddg", ddg_search, query, max_results))
+    brave_task = asyncio.create_task(_safe_search("brave", brave_search, query, max_results))
 
+    engine_results = await asyncio.gather(ddg_task, brave_task)
+
+    # Merge and deduplicate
     all_results: List[Dict[str, str]] = []
     seen_urls: set = set()
 
-    for i, (engine_name, search_fn) in enumerate(engines):
-        # Small delay between engines to avoid triggering rate limits
-        if i > 0:
-            time.sleep(random.uniform(0.3, 0.8))
-
-        try:
-            results = search_fn(query, max_results=max_results)
-        except Exception as exc:
-            print(f"[multi] {engine_name} failed: {exc}", flush=True)
-            continue
-
+    for results in engine_results:
         for item in results:
             href = item.get("href", "")
-            # Deduplicate by normalized URL (strip trailing slashes, www prefix)
             url_key = _normalize_url(href)
             if url_key and url_key not in seen_urls:
                 seen_urls.add(url_key)
@@ -53,6 +43,17 @@ def multi_search(query: str, max_results: int = 10) -> List[Dict[str, str]]:
 
     # Trim to max_results
     return all_results[:max_results]
+
+
+async def _safe_search(
+    name: str, search_fn, query: str, max_results: int
+) -> List[Dict[str, str]]:
+    """Run a search function with error handling."""
+    try:
+        return await search_fn(query, max_results=max_results)
+    except Exception as exc:
+        print(f"[multi] {name} failed: {exc}", flush=True)
+        return []
 
 
 def _normalize_url(url: str) -> str:

@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from functools import partial
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
@@ -184,9 +183,7 @@ async def api_score(req: ScoreRequest) -> ScoreResponse:
 
     profile = await enrich_founder(name, company)
 
-    # score_founder uses the sync Anthropic client internally, so run in executor
-    loop = asyncio.get_event_loop()
-    card = await loop.run_in_executor(None, partial(_sync_score, profile))
+    card = await score_founder(profile)
 
     return ScoreResponse(card=card, enrichment=profile.pdl, linkedin=profile.linkedin)
 
@@ -267,10 +264,7 @@ async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
                     enrichment_summary=enrichment_text,
                 )
 
-            loop = asyncio.get_event_loop()
-            card = await loop.run_in_executor(
-                None, partial(_sync_score, profile)
-            )
+            card = await score_founder(profile)
             return FounderResult(
                 name=name,
                 company=company,
@@ -322,7 +316,7 @@ async def api_sources():
 async def api_debug_search(q: str = "AI startup founder"):
     """Diagnostic: test multi-engine search from this server."""
     from scraper.multi_search import multi_search
-    results = multi_search(q, max_results=5)
+    results = await multi_search(q, max_results=5)
     return {
         "query": q,
         "engines": ["ddg", "brave"],
@@ -438,7 +432,3 @@ async def api_export_json():
     )
 
 
-def _sync_score(profile):
-    """Wrapper to call the async score_founder synchronously in an executor."""
-    import asyncio
-    return asyncio.run(score_founder(profile))

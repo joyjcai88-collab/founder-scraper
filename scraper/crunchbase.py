@@ -344,7 +344,7 @@ async def _ddg_snippet_fallback(
     query_parts.append("funding")
     query = " ".join(query_parts)
 
-    results = multi_search(query, max_results=5)
+    results = await multi_search(query, max_results=5)
     if not results:
         return None
 

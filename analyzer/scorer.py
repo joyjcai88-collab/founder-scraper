@@ -140,9 +140,9 @@ async def score_founder(
             "ANTHROPIC_API_KEY not set. Copy .env.example to .env and add your key."
         )
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key)
 
-    response = client.messages.create(
+    response = await client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=2048,
         system=_build_system_prompt(thesis),

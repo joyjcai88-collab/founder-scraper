@@ -201,24 +201,19 @@ async def discover_founders(
     # Calculate results per source to balance coverage
     per_source = max(5, (limit * 3) // len(active_sources))
 
-    for idx, source in enumerate(active_sources):
-        if len(all_results) >= limit:
-            break
+    # --- Run sources concurrently in batches (3 at a time to avoid rate limits) ---
+    BATCH_SIZE = 3
 
-        # Delay between sources to avoid rate limiting (longer for later sources)
-        if idx > 0:
-            await asyncio.sleep(1.0 + (idx * 0.5))
-
-        # Primary query: site-restricted with core industry/product terms only
+    async def _search_source(source: Source) -> List[Dict[str, str]]:
+        """Search a single source with primary + fallback queries."""
         query = f"{source.site_query} {core_criteria}"
         if source.extra_keywords:
             query += f" {source.extra_keywords}"
 
-        raw_results = multi_search(query, max_results=per_source)
+        raw = await multi_search(query, max_results=per_source)
 
         # If site-restricted query returned nothing, try open-web fallback
-        # with the full criteria (industry + stage + source name)
-        if not raw_results:
+        if not raw:
             fallback_parts = [core_criteria]
             if stage_term:
                 fallback_parts.append(stage_term)
@@ -228,10 +223,36 @@ async def discover_founders(
             fallback_parts.append("founder")
             fallback_query = " ".join(fallback_parts)
 
-            await asyncio.sleep(0.5)
-            raw_results = multi_search(fallback_query, max_results=per_source)
-        print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw_results)} raw results", flush=True)
+            await asyncio.sleep(0.3)
+            raw = await multi_search(fallback_query, max_results=per_source)
 
+        print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw)} raw results", flush=True)
+        return raw
+
+    # Process sources in batches of BATCH_SIZE concurrently
+    source_results: List[tuple] = []  # [(source, results), ...]
+    for batch_start in range(0, len(active_sources), BATCH_SIZE):
+        if len(all_results) >= limit:
+            break
+
+        batch = active_sources[batch_start:batch_start + BATCH_SIZE]
+
+        # Small delay between batches (not between individual sources)
+        if batch_start > 0:
+            await asyncio.sleep(1.0)
+
+        # Run batch concurrently
+        batch_tasks = [_search_source(src) for src in batch]
+        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+        for source, raw_results in zip(batch, batch_results):
+            if isinstance(raw_results, Exception):
+                print(f"[discovery] Source {source.key} failed: {raw_results}", flush=True)
+                continue
+            source_results.append((source, raw_results))
+
+    # --- Process all results ---
+    for source, raw_results in source_results:
         for item in raw_results:
             if len(all_results) >= limit:
                 break

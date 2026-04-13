@@ -61,7 +61,7 @@ async def _find_linkedin_url(
     snippet_text = ""
 
     try:
-        results = multi_search(query, max_results=5)
+        results = await multi_search(query, max_results=5)
 
         for result in results:
             href = result.get("href", "")
