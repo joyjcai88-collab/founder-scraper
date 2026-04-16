@@ -175,6 +175,62 @@
     .saved-date { font-size: 11px; color: #9ca3af; margin-top: auto; padding-top: 6px; }
     .toast { position: fixed; bottom: 24px; right: 24px; background: #111827; color: #ffffff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .toast.visible { transform: translateY(0); opacity: 1; }
+
+    /* Selection checkboxes on founder cards */
+    .founder-row { position: relative; }
+    .founder-select-cb { position: absolute; top: 12px; right: 12px; width: 18px; height: 18px; cursor: pointer; accent-color: #2563eb; z-index: 2; }
+    .founder-row.selected { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+
+    /* Sticky outreach bar */
+    .outreach-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #111827; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 500; transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -4px 16px rgba(0,0,0,0.2); }
+    .outreach-bar.visible { transform: translateY(0); }
+    .outreach-bar-left { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .outreach-bar-count { background: #2563eb; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 12px; }
+    .outreach-bar-clear { color: #9ca3af; font-size: 13px; cursor: pointer; text-decoration: underline; }
+    .outreach-bar-clear:hover { color: #e5e7eb; }
+    .outreach-bar-btn { background: #2563eb; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .outreach-bar-btn:hover { background: #1d4ed8; }
+
+    /* Outreach panel (right drawer) */
+    .outreach-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 600; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .outreach-overlay.visible { opacity: 1; pointer-events: all; }
+    .outreach-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 540px; max-width: 100vw; background: #fff; z-index: 700; box-shadow: -4px 0 32px rgba(0,0,0,0.15); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+    .outreach-panel.visible { transform: translateX(0); }
+    .op-header { padding: 20px 24px 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+    .op-header h2 { font-size: 18px; font-weight: 600; color: #111827; }
+    .op-close { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 6px; }
+    .op-close:hover { color: #111827; background: #f3f4f6; }
+    .op-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .op-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 8px; }
+    .op-founders-list { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; }
+    .op-founder-chip { display: flex; align-items: center; justify-content: space-between; background: #f3f4f6; border-radius: 8px; padding: 7px 12px; font-size: 13px; color: #374151; }
+    .op-founder-chip .chip-name { font-weight: 600; }
+    .op-founder-chip .chip-co { color: #6b7280; margin-left: 6px; }
+    .op-founder-chip .chip-rm { background: none; border: none; color: #9ca3af; cursor: pointer; padding: 0 4px; font-size: 16px; line-height: 1; }
+    .op-founder-chip .chip-rm:hover { color: #dc2626; }
+    .op-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .op-field { display: flex; flex-direction: column; gap: 5px; }
+    .op-field label { font-size: 12px; font-weight: 500; color: #374151; }
+    .op-field select, .op-field textarea { border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: inherit; color: #111827; background: #fff; outline: none; }
+    .op-field select:focus, .op-field textarea:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .op-field textarea { resize: vertical; min-height: 72px; }
+    .op-generate-btn { background: #2563eb; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .op-generate-btn:hover { background: #1d4ed8; }
+    .op-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .op-messages { display: flex; flex-direction: column; gap: 16px; }
+    .op-msg-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+    .op-msg-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+    .op-msg-name { font-size: 13px; font-weight: 600; color: #111827; }
+    .op-msg-co { font-size: 12px; color: #6b7280; margin-left: 6px; }
+    .op-msg-copy { background: none; border: 1px solid #d1d5db; color: #374151; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    .op-msg-copy:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+    .op-msg-subject { font-size: 12px; font-weight: 600; color: #6b7280; padding: 8px 14px 0; }
+    .op-msg-body { padding: 10px 14px; font-size: 13px; color: #374151; line-height: 1.6; white-space: pre-wrap; }
+    .op-footer { padding: 16px 24px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; }
+    .op-copy-all-btn { flex: 1; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .op-copy-all-btn:hover { background: #e5e7eb; }
+    .op-loading { text-align: center; padding: 32px 16px; color: #6b7280; }
+    .op-loading .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -292,6 +348,76 @@
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
+
+  <!-- Sticky outreach selection bar -->
+  <div class="outreach-bar" id="outreachBar">
+    <div class="outreach-bar-left">
+      <span class="outreach-bar-count" id="outreachCount">0</span>
+      <span id="outreachBarLabel">founders selected for outreach</span>
+      <span class="outreach-bar-clear" onclick="clearOutreachSelection()">Clear</span>
+    </div>
+    <button class="outreach-bar-btn" onclick="openOutreachPanel()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Compose Outreach
+    </button>
+  </div>
+
+  <!-- Outreach overlay -->
+  <div class="outreach-overlay" id="outreachOverlay" onclick="closeOutreachPanel()"></div>
+
+  <!-- Outreach panel -->
+  <div class="outreach-panel" id="outreachPanel">
+    <div class="op-header">
+      <h2>Compose Outreach</h2>
+      <button class="op-close" onclick="closeOutreachPanel()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="op-body" id="opBody">
+      <!-- Selected founders list -->
+      <div>
+        <div class="op-section-title">Selected Founders</div>
+        <div class="op-founders-list" id="opFoundersList"></div>
+      </div>
+
+      <!-- Message settings -->
+      <div class="op-row">
+        <div class="op-field">
+          <label>Message type</label>
+          <select id="opType">
+            <option value="email">Email</option>
+            <option value="linkedin">LinkedIn DM</option>
+          </select>
+        </div>
+        <div class="op-field">
+          <label>Tone</label>
+          <select id="opTone">
+            <option value="professional">Professional</option>
+            <option value="casual">Casual & Warm</option>
+            <option value="direct">Direct & Brief</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="op-field">
+        <label>Your angle / context <span style="color:#9ca3af;font-weight:400">(optional)</span></label>
+        <textarea id="opContext" placeholder="e.g. Pre-seed fintech investor focused on payments infrastructure. Looking to connect with early-stage founders."></textarea>
+      </div>
+
+      <button class="op-generate-btn" id="opGenerateBtn" onclick="generateOutreach()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Generate Messages
+      </button>
+
+      <!-- Generated messages -->
+      <div id="opMessages"></div>
+    </div>
+
+    <div class="op-footer" id="opFooter" style="display:none">
+      <button class="op-copy-all-btn" onclick="copyAllMessages()">Copy All Messages</button>
+    </div>
+  </div>
 
   <script>
     // --- Tab switching ---
@@ -748,8 +874,13 @@
           const saveClass = isSaved ? 'save-btn saved' : 'save-btn';
           const saveLabel = isSaved ? 'Saved' : 'Save';
 
+          const isSelected = selectedForOutreach.has(i);
+          const selectCb = `<input type="checkbox" class="founder-select-cb" id="outreach-cb-${i}" ${isSelected ? 'checked' : ''}
+            onclick="event.stopPropagation(); toggleOutreachSelect(${i}, this.checked)" title="Select for outreach">`;
+
           if (f.error) {
-            return `<div class="founder-row">
+            return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}">
+              ${selectCb}
               <div class="rank">#${i + 1}</div>
               <div class="info">
                 <div class="fname">${esc(f.name)}</div>
@@ -762,7 +893,8 @@
               <div class="ferror">${esc(f.error)}</div>
             </div>`;
           }
-          return `<div class="founder-row" onclick="showFounderDetail(${i})" style="cursor:pointer">
+          return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}" onclick="showFounderDetail(${i})" style="cursor:pointer">
+            ${selectCb}
             <div class="rank">#${i + 1}</div>
             <div class="info">
               <div class="fname">${esc(f.name)}</div>
@@ -822,6 +954,164 @@
         if (tab.dataset.tab === 'saved') loadSavedFounders();
       });
     });
+
+    // ===== OUTREACH SELECTION =====
+    let selectedForOutreach = new Set();  // set of founder indices
+
+    function toggleOutreachSelect(idx, checked) {
+      if (checked) {
+        selectedForOutreach.add(idx);
+      } else {
+        selectedForOutreach.delete(idx);
+      }
+      const row = document.getElementById('founder-row-' + idx);
+      if (row) row.classList.toggle('selected', checked);
+      updateOutreachBar();
+    }
+
+    function updateOutreachBar() {
+      const bar = document.getElementById('outreachBar');
+      const count = selectedForOutreach.size;
+      document.getElementById('outreachCount').textContent = count;
+      document.getElementById('outreachBarLabel').textContent =
+        count === 1 ? 'founder selected for outreach' : 'founders selected for outreach';
+      bar.classList.toggle('visible', count > 0);
+    }
+
+    function clearOutreachSelection() {
+      selectedForOutreach.forEach(idx => {
+        const cb = document.getElementById('outreach-cb-' + idx);
+        if (cb) cb.checked = false;
+        const row = document.getElementById('founder-row-' + idx);
+        if (row) row.classList.remove('selected');
+      });
+      selectedForOutreach.clear();
+      updateOutreachBar();
+    }
+
+    function openOutreachPanel() {
+      if (selectedForOutreach.size === 0) return;
+      // Populate selected founders list in panel
+      const list = document.getElementById('opFoundersList');
+      list.innerHTML = [...selectedForOutreach].map(idx => {
+        const f = discoveredFounders[idx];
+        if (!f) return '';
+        return `<div class="op-founder-chip" id="op-chip-${idx}">
+          <span><span class="chip-name">${esc(f.name)}</span>${f.company ? `<span class="chip-co">@ ${esc(f.company)}</span>` : ''}</span>
+          <button class="chip-rm" onclick="removeFromOutreach(${idx})" title="Remove">×</button>
+        </div>`;
+      }).join('');
+      // Reset messages area
+      document.getElementById('opMessages').innerHTML = '';
+      document.getElementById('opFooter').style.display = 'none';
+      // Show panel
+      document.getElementById('outreachOverlay').classList.add('visible');
+      document.getElementById('outreachPanel').classList.add('visible');
+    }
+
+    function closeOutreachPanel() {
+      document.getElementById('outreachOverlay').classList.remove('visible');
+      document.getElementById('outreachPanel').classList.remove('visible');
+    }
+
+    function removeFromOutreach(idx) {
+      selectedForOutreach.delete(idx);
+      const chip = document.getElementById('op-chip-' + idx);
+      if (chip) chip.remove();
+      const cb = document.getElementById('outreach-cb-' + idx);
+      if (cb) cb.checked = false;
+      const row = document.getElementById('founder-row-' + idx);
+      if (row) row.classList.remove('selected');
+      updateOutreachBar();
+      // Close panel if no founders left
+      if (selectedForOutreach.size === 0) closeOutreachPanel();
+    }
+
+    async function generateOutreach() {
+      const founders = [...selectedForOutreach].map(idx => discoveredFounders[idx]).filter(Boolean);
+      if (!founders.length) return;
+
+      const btn = document.getElementById('opGenerateBtn');
+      const messagesEl = document.getElementById('opMessages');
+
+      btn.disabled = true;
+      messagesEl.innerHTML = `<div class="op-loading"><div class="spinner"></div><p>Generating personalised messages...</p></div>`;
+      document.getElementById('opFooter').style.display = 'none';
+
+      try {
+        const resp = await fetch('/api/outreach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            founders: founders.map(f => ({
+              name: f.name,
+              company: f.company || null,
+              role: f.role || null,
+              product_desc: f.product_desc || null,
+              industry: f.industry || null,
+              stage: f.stage || null,
+              url: f.url || null,
+            })),
+            message_type: document.getElementById('opType').value,
+            tone: document.getElementById('opTone').value,
+            context: document.getElementById('opContext').value.trim() || null,
+          }),
+        });
+
+        if (!resp.ok) throw new Error('Generation failed');
+        const data = await resp.json();
+
+        messagesEl.innerHTML = `<div class="op-messages">${data.messages.map(m => `
+          <div class="op-msg-card">
+            <div class="op-msg-header">
+              <span><span class="op-msg-name">${esc(m.founder_name)}</span>${m.company ? `<span class="op-msg-co">@ ${esc(m.company)}</span>` : ''}</span>
+              <button class="op-msg-copy" onclick="copyMessage(this)" data-subject="${esc(m.subject || '')}" data-body="${esc(m.message)}">Copy</button>
+            </div>
+            ${m.subject ? `<div class="op-msg-subject">Subject: ${esc(m.subject)}</div>` : ''}
+            <div class="op-msg-body">${esc(m.message)}</div>
+          </div>`).join('')}
+        </div>`;
+        document.getElementById('opFooter').style.display = 'flex';
+
+      } catch (err) {
+        messagesEl.innerHTML = `<div style="color:#dc2626;font-size:14px;padding:12px">Failed to generate messages. Please try again.</div>`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function copyMessage(btn) {
+      const subject = btn.dataset.subject;
+      const body = btn.dataset.body;
+      const text = subject ? `Subject: ${subject}\n\n${body}` : body;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = '#dcfce7';
+        btn.style.borderColor = '#16a34a';
+        btn.style.color = '#16a34a';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style = '';
+        }, 1500);
+      });
+    }
+
+    function copyAllMessages() {
+      const cards = document.querySelectorAll('.op-msg-card');
+      const parts = [...cards].map(card => {
+        const name = card.querySelector('.op-msg-name')?.textContent || '';
+        const co = card.querySelector('.op-msg-co')?.textContent?.replace('@ ', '') || '';
+        const subj = card.querySelector('.op-msg-subject')?.textContent || '';
+        const body = card.querySelector('.op-msg-body')?.textContent || '';
+        return [
+          `To: ${name}${co ? ' @ ' + co : ''}`,
+          subj,
+          body,
+        ].filter(Boolean).join('\n');
+      }).join('\n\n---\n\n');
+      navigator.clipboard.writeText(parts).then(() => showToast('All messages copied!'));
+    }
   </script>
 </body>
 </html>

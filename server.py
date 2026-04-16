@@ -312,6 +312,135 @@ async def api_sources():
     return get_available_sources()
 
 
+
+# --- Outreach endpoint ---
+
+class OutreachFounder(BaseModel):
+    name: str
+    company: Optional[str] = None
+    role: Optional[str] = None
+    product_desc: Optional[str] = None
+    industry: Optional[str] = None
+    stage: Optional[str] = None
+    url: Optional[str] = None
+
+class OutreachRequest(BaseModel):
+    founders: List[OutreachFounder]
+    message_type: str = "email"       # "email" | "linkedin"
+    tone: str = "professional"        # "professional" | "casual" | "direct"
+    context: Optional[str] = None     # VC's angle / what they're looking for
+
+class OutreachMessage(BaseModel):
+    founder_name: str
+    company: Optional[str] = None
+    subject: Optional[str] = None
+    message: str
+
+class OutreachResponse(BaseModel):
+    messages: List[OutreachMessage]
+
+@app.post("/api/outreach")
+async def api_outreach(req: OutreachRequest) -> OutreachResponse:
+    """Generate personalized outreach messages for a list of founders using Claude."""
+    import os
+    import anthropic
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+
+    if not req.founders:
+        return OutreachResponse(messages=[])
+
+    tone_desc = {
+        "professional": "professional and polished, suitable for a formal email",
+        "casual": "warm and conversational, like a peer reaching out",
+        "direct": "brief and direct, respecting their time — no fluff",
+    }.get(req.tone, "professional")
+
+    type_desc = "a LinkedIn direct message (keep under 300 characters, no subject line)" \
+        if req.message_type == "linkedin" else "an email (include a subject line)"
+
+    context_line = f"\nVC context / angle: {req.context}" if req.context else ""
+
+    # Build a prompt requesting messages for all founders in one call
+    founders_block = "\n".join([
+        f"{i+1}. Name: {f.name}"
+        + (f", Company: {f.company}" if f.company else "")
+        + (f", Role: {f.role}" if f.role else "")
+        + (f", Building: {f.product_desc}" if f.product_desc else "")
+        + (f", Industry: {f.industry}" if f.industry else "")
+        + (f", Stage: {f.stage}" if f.stage else "")
+        for i, f in enumerate(req.founders)
+    ])
+
+    if req.message_type == "email":
+        subject_instruction = "Include a compelling subject line on a line starting 'Subject: '"
+        format_instruction = "Format each as:\nSubject: <subject line>\n\n<message body>"
+    else:
+        subject_instruction = "No subject line needed."
+        format_instruction = "Format each as just the message text."
+
+    prompt = f"""You are a VC writing outreach to founders you want to connect with.
+Write {type_desc} for each founder below.
+Tone: {tone_desc}.{context_line}
+
+For each founder, personalise the message to their specific company, product, or industry.
+Be genuine — reference something specific about what they're building.
+{subject_instruction}
+
+Founders:
+{founders_block}
+
+Return ONLY the messages, separated by a line containing exactly "---" between each founder.
+{format_instruction}
+Do not include any other text, numbering, or commentary."""
+
+    client = anthropic.AsyncAnthropic(api_key=api_key)
+    resp = await client.messages.create(
+        model="claude-haiku-4-20250514",
+        max_tokens=2048,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = resp.content[0].text.strip()
+
+    # Split by separator
+    sections = [s.strip() for s in raw.split("---") if s.strip()]
+    messages: List[OutreachMessage] = []
+
+    for i, section in enumerate(sections):
+        if i >= len(req.founders):
+            break
+        founder = req.founders[i]
+        subject = None
+        body = section
+
+        if req.message_type == "email":
+            lines = section.split("\n")
+            if lines and lines[0].lower().startswith("subject:"):
+                subject = lines[0][8:].strip()
+                body = "\n".join(lines[1:]).strip()
+
+        messages.append(OutreachMessage(
+            founder_name=founder.name,
+            company=founder.company,
+            subject=subject,
+            message=body,
+        ))
+
+    # Fill in any missing messages if Claude returned fewer than expected
+    for i in range(len(messages), len(req.founders)):
+        f = req.founders[i]
+        messages.append(OutreachMessage(
+            founder_name=f.name,
+            company=f.company,
+            subject=f"Connecting with {f.name}" if req.message_type == "email" else None,
+            message=f"Hi {f.name}, I'd love to connect and learn more about {f.company or 'your work'}.",
+        ))
+
+    return OutreachResponse(messages=messages)
+
+
 @app.get("/api/debug/search")
 async def api_debug_search(q: str = "AI startup founder"):
     """Diagnostic: test multi-engine search from this server."""
