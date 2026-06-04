@@ -14,7 +14,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Stre
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
-from analyzer.discovery import discover_founders, get_available_sources
+from analyzer.discovery import discover_founders, discover_all_linkedin_industries, get_available_sources
 from analyzer.enricher import enrich_founder
 from analyzer.product_eval import evaluate_product
 from analyzer.scorer import score_founder
@@ -188,6 +188,118 @@ async def api_score(req: ScoreRequest) -> ScoreResponse:
     return ScoreResponse(card=card, enrichment=profile.pdl, linkedin=profile.linkedin)
 
 
+@app.get("/api/discover/stream")
+async def api_discover_stream(
+    industry: Optional[str] = None,
+    stage: Optional[str] = None,
+    product: Optional[str] = None,
+    date_founded: Optional[str] = None,
+    limit: int = 5,
+    sources: Optional[str] = None,  # comma-separated source keys
+):
+    """Stream discovered founders as SSE events — emits each card as soon as it's ready."""
+    import json
+
+    source_list = [s.strip() for s in sources.split(",")] if sources else None
+
+    parts = []
+    if industry: parts.append(sanitize_input(industry))
+    if stage:    parts.append(sanitize_input(stage))
+    if product:  parts.append(sanitize_input(product))
+    if date_founded: parts.append(f"founded {sanitize_input(date_founded)}")
+    query_summary = " / ".join(parts) if parts else "All founders"
+
+    s_industry = sanitize_input(industry) if industry else None
+    s_stage    = sanitize_input(stage)    if stage    else None
+    s_product  = sanitize_input(product)  if product  else None
+    s_date     = sanitize_input(date_founded) if date_founded else None
+
+    async def _process_one(entry: Dict) -> Optional[FounderResult]:
+        name        = sanitize_input(entry.get("name", ""))
+        company     = sanitize_input(entry.get("company", "")) or None
+        role        = entry.get("role", "")
+        product_desc = entry.get("product_desc", "") or None
+        source      = entry.get("source", "")
+        url         = entry.get("url", "")
+        if not name or (not company and not product_desc):
+            return None
+
+        from analyzer.product_eval import evaluate_product
+        p_eval = evaluate_product(
+            product_desc=product_desc, company=company, industry=s_industry,
+            role=role, stage=s_stage,
+        )
+        try:
+            profile = await enrich_founder(name, company)
+            enrichment_text = ""
+            if profile.pdl and profile.pdl.summary:
+                enrichment_text = profile.pdl.summary
+            elif profile.linkedin and profile.linkedin.headline:
+                enrichment_text = profile.linkedin.headline
+            if enrichment_text:
+                p_eval = evaluate_product(
+                    product_desc=product_desc, company=company, industry=s_industry,
+                    role=role, stage=s_stage, enrichment_summary=enrichment_text,
+                )
+            card = await score_founder(profile)
+            return FounderResult(
+                name=name, company=company, role=role,
+                industry=s_industry, stage=s_stage, date_founded=s_date,
+                product=s_product, product_desc=product_desc, product_eval=p_eval,
+                source=source, url=url, card=card,
+                enrichment=profile.pdl, linkedin=profile.linkedin,
+            )
+        except Exception as e:
+            return FounderResult(
+                name=name, company=company, role=role,
+                industry=s_industry, stage=s_stage, date_founded=s_date,
+                product=s_product, product_desc=product_desc, product_eval=p_eval,
+                source=source, url=url, error=str(e),
+            )
+
+    async def event_generator():
+        try:
+            # Phase 1: discover (fast, ~2-5s)
+            raw_founders = await discover_founders(
+                industry=industry, stage=stage, product=product,
+                date_founded=date_founded, limit=limit, sources=source_list,
+            )
+            if not raw_founders:
+                yield f"data: {json.dumps({'type': 'done', 'query': query_summary, 'total': 0})}\n\n"
+                return
+
+            # Emit total count so frontend can show progress
+            yield f"data: {json.dumps({'type': 'count', 'total': len(raw_founders), 'query': query_summary})}\n\n"
+
+            # Phase 2: enrich + score concurrently, emit each as it finishes
+            queue: asyncio.Queue = asyncio.Queue()
+
+            async def worker(entry):
+                result = await _process_one(entry)
+                await queue.put(result)
+
+            tasks = [asyncio.create_task(worker(f)) for f in raw_founders]
+
+            for _ in range(len(raw_founders)):
+                result = await queue.get()
+                if result is not None:
+                    yield f"data: {json.dumps({'type': 'founder', 'data': result.dict()})}\n\n"
+
+            await asyncio.gather(*tasks, return_exceptions=True)
+            yield f"data: {json.dumps({'type': 'done', 'query': query_summary, 'total': len(raw_founders)})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 @app.post("/api/discover")
 async def api_discover(req: DiscoverRequest) -> DiscoverResponse:
     """Discover founders by company criteria (industry, stage, product, date)."""
@@ -312,6 +424,77 @@ async def api_sources():
     return get_available_sources()
 
 
+@app.get("/api/discover/linkedin-all/stream")
+async def api_linkedin_all_stream():
+    """Stream founders across ALL LinkedIn industry categories via SSE.
+
+    Discovers founders in all 18 LinkedIn industry buckets concurrently,
+    then enriches + scores each one and streams them as they complete.
+    """
+    import json as _json
+
+    async def _process_one(entry: Dict) -> Optional[FounderResult]:
+        name        = sanitize_input(entry.get("name", ""))
+        company     = sanitize_input(entry.get("company", "")) or None
+        role        = entry.get("role", "")
+        product_desc = entry.get("product_desc", "") or None
+        source      = entry.get("source", "")
+        url         = entry.get("url", "")
+        if not name or (not company and not product_desc):
+            return None
+        from analyzer.product_eval import evaluate_product
+        p_eval = evaluate_product(
+            product_desc=product_desc, company=company, industry=None, role=role, stage=None,
+        )
+        try:
+            profile = await enrich_founder(name, company)
+            card = await score_founder(profile)
+            return FounderResult(
+                name=name, company=company, role=role,
+                product_desc=product_desc, product_eval=p_eval,
+                source=source, url=url, card=card,
+                enrichment=profile.pdl, linkedin=profile.linkedin,
+            )
+        except Exception as e:
+            return FounderResult(
+                name=name, company=company, role=role,
+                product_desc=product_desc, product_eval=p_eval,
+                source=source, url=url, error=str(e),
+            )
+
+    async def event_generator():
+        try:
+            # Phase 1: discover across all LinkedIn industry buckets concurrently (~3-5s)
+            raw_founders = await discover_all_linkedin_industries(founders_per_bucket=3)
+
+            yield f"data: {_json.dumps({'type': 'count', 'total': len(raw_founders), 'query': 'All LinkedIn Industries'})}\n\n"
+
+            # Phase 2: enrich + score concurrently, emit each as it finishes
+            queue: asyncio.Queue = asyncio.Queue()
+
+            async def worker(entry):
+                result = await _process_one(entry)
+                await queue.put(result)
+
+            tasks = [asyncio.create_task(worker(f)) for f in raw_founders]
+
+            for _ in range(len(raw_founders)):
+                result = await queue.get()
+                if result is not None:
+                    yield f"data: {_json.dumps({'type': 'founder', 'data': result.dict()})}\n\n"
+
+            await asyncio.gather(*tasks, return_exceptions=True)
+            yield f"data: {_json.dumps({'type': 'done', 'query': 'All LinkedIn Industries', 'total': len(raw_founders)})}\n\n"
+        except Exception as e:
+            yield f"data: {_json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 
 # --- Outreach endpoint ---
 
@@ -398,7 +581,7 @@ Do not include any other text, numbering, or commentary."""
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
     resp = await client.messages.create(
-        model="claude-haiku-4-20250514",
+        model="claude-sonnet-4-20250514",
         max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )

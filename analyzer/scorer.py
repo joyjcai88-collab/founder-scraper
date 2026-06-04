@@ -144,7 +144,7 @@ async def score_founder(
 
     response = await client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=2048,
+        max_tokens=1024,
         system=_build_system_prompt(thesis),
         tools=[SCORING_TOOL],
         tool_choice={"type": "tool", "name": "submit_founder_score"},

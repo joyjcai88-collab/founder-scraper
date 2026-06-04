@@ -20,7 +20,9 @@ Sources searched:
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -154,8 +156,250 @@ SOURCE_MAP: Dict[str, Source] = {s.key: s for s in SOURCES}
 
 
 # ---------------------------------------------------------------------------
+# LinkedIn industry taxonomy — grouped into VC-relevant buckets
+# ---------------------------------------------------------------------------
+
+LINKEDIN_INDUSTRY_BUCKETS: Dict[str, List[str]] = {
+    "Technology & Software": [
+        "Software Development", "Technology, Information and Internet",
+        "IT Services and IT Consulting", "Computer Hardware Manufacturing",
+        "Semiconductor Manufacturing", "Computer Networking Products",
+    ],
+    "AI & Deep Tech": [
+        "Artificial Intelligence", "Machine Learning", "Data Analytics",
+        "Robotics", "Quantum Computing", "Augmented and Virtual Reality",
+    ],
+    "Cybersecurity & Infrastructure": [
+        "Computer and Network Security", "Cloud Computing",
+        "Mobile Computing", "Internet of Things", "Embedded Software",
+    ],
+    "Fintech & Financial Services": [
+        "Financial Services", "Banking", "Insurance", "Investment Management",
+        "Venture Capital and Private Equity", "Credit Intermediation",
+    ],
+    "Crypto & Web3": [
+        "Cryptocurrency", "Blockchain and Cryptocurrency", "Decentralized Finance",
+        "NFT and Digital Assets", "Web3",
+    ],
+    "Healthcare & Life Sciences": [
+        "Hospitals and Health Care", "Biotechnology Research",
+        "Pharmaceutical Manufacturing", "Medical Device",
+        "Mental Health Care", "Wellness and Fitness Services",
+    ],
+    "Consumer & E-Commerce": [
+        "E-Commerce and Online Retail", "Retail", "Consumer Goods",
+        "Food and Beverage Services", "Personal Care Product Manufacturing",
+        "Apparel and Fashion",
+    ],
+    "Media & Entertainment": [
+        "Entertainment Providers", "Media Production", "Online Audio and Video Media",
+        "Gaming", "Advertising Services", "Book and Periodical Publishing",
+    ],
+    "Education & Future of Work": [
+        "Education Administration Programs", "E-Learning Providers",
+        "Human Resources Services", "Staffing and Recruiting",
+        "Professional Training and Coaching",
+    ],
+    "Industrial & Manufacturing": [
+        "Manufacturing", "Automation Machinery Manufacturing",
+        "Motor Vehicle Manufacturing", "Aerospace and Defense",
+        "Electrical Equipment Manufacturing",
+    ],
+    "Energy & Climate": [
+        "Renewable Energy Semiconductor Manufacturing", "Solar Electric Power Generation",
+        "Wind Electric Power Generation", "Electric Power Generation",
+        "Environmental Services", "Waste Treatment and Disposal",
+    ],
+    "Real Estate & Construction": [
+        "Real Estate", "Real Estate and Equipment Rental Services",
+        "Construction", "Architecture and Planning", "Property Management",
+    ],
+    "Transportation & Logistics": [
+        "Transportation, Logistics, Supply Chain and Storage",
+        "Truck Transportation", "Maritime Transportation",
+        "Freight and Package Transportation", "Ground Passenger Transportation",
+    ],
+    "Agriculture & Food Tech": [
+        "Farming", "Agricultural Chemical Manufacturing",
+        "Food and Beverage Manufacturing", "Food and Beverage Retail",
+        "Alternative Protein", "Precision Agriculture",
+    ],
+    "Professional & Legal Services": [
+        "Law Practice", "Legal Services", "Management Consulting",
+        "Accounting", "Market Research", "Public Relations and Communications Services",
+    ],
+    "Government & Non-Profit": [
+        "Government Administration", "Public Policy Offices",
+        "Non-profit Organizations", "Think Tanks", "Civic and Social Organizations",
+    ],
+    "Space & Defense": [
+        "Defense and Space Manufacturing", "Nanotechnology Research",
+        "Nuclear Electric Power Generation", "Satellite Telecommunications",
+        "Weapons and Ammunition Manufacturing",
+    ],
+    "Hospitality & Travel": [
+        "Hospitality", "Hotels and Motels", "Travel Arrangements",
+        "Restaurants", "Recreational Facilities",
+    ],
+}
+
+
+async def discover_all_linkedin_industries(
+    founders_per_bucket: int = 3,
+) -> List[Dict[str, str]]:
+    """Discover founders across every LinkedIn industry category bucket.
+
+    Runs one Claude Haiku call per bucket concurrently, then deduplicates.
+    Returns a stream-friendly list ordered by bucket.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return []
+
+    import anthropic
+    client = anthropic.AsyncAnthropic(api_key=api_key)
+
+    async def _bucket_founders(bucket_name: str, industries: List[str]) -> List[Dict[str, str]]:
+        industry_list = ", ".join(industries)
+        prompt = (
+            f"List {founders_per_bucket * 2} real, publicly known startup founders "
+            f"from these LinkedIn industry categories: {industry_list}.\n\n"
+            f"Return ONLY a valid JSON array — no markdown, no explanation:\n"
+            f'[{{"name": "Full Name", "company": "Company Name", "role": "Founder/CEO/CTO", '
+            f'"industry": "Specific Industry", "product_desc": "One sentence on what they build"}}]\n\n'
+            f"Rules: real people only, each with name + company, varied across the listed industries."
+        )
+        try:
+            resp = await client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=800,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            text = resp.content[0].text.strip()
+            match = re.search(r'\[[\s\S]*\]', text)
+            if not match:
+                return []
+            raw = json.loads(match.group(0))
+            results = []
+            for f in raw:
+                name = (f.get("name") or "").strip()
+                company = (f.get("company") or "").strip()
+                if not name or not company:
+                    continue
+                results.append({
+                    "name": name,
+                    "company": company,
+                    "role": f.get("role") or "Founder",
+                    "product_desc": f.get("product_desc") or "",
+                    "source": f"LinkedIn – {f.get('industry', bucket_name)}",
+                    "url": "",
+                    "_bucket": bucket_name,
+                })
+            print(f"[discovery] Bucket '{bucket_name}': {len(results)} founders", flush=True)
+            return results[:founders_per_bucket]
+        except Exception as exc:
+            print(f"[discovery] Bucket '{bucket_name}' failed: {exc}", flush=True)
+            return []
+
+    # Run all buckets concurrently
+    tasks = [_bucket_founders(name, industries) for name, industries in LINKEDIN_INDUSTRY_BUCKETS.items()]
+    bucket_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Merge and deduplicate
+    all_results = []
+    seen_names: set = set()
+    for res in bucket_results:
+        if isinstance(res, Exception):
+            continue
+        for entry in res:
+            key = entry["name"].lower().strip()
+            if key not in seen_names and len(key) >= 3:
+                seen_names.add(key)
+                all_results.append(entry)
+
+    return all_results
+
+
+# ---------------------------------------------------------------------------
 # Main discovery function
 # ---------------------------------------------------------------------------
+
+async def _claude_seed_founders(
+    industry: str,
+    stage: Optional[str],
+    product: Optional[str],
+    date_founded: Optional[str],
+    limit: int,
+) -> List[Dict[str, str]]:
+    """Use Claude Haiku to generate a seeded list of real founders matching criteria.
+
+    This is fast (~1-2s), reliable for niche industries (crypto, fintech, biotech, etc.),
+    and supplements the web-search results which can be sparse for specific domains.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return []
+
+    import anthropic
+
+    criteria_lines = []
+    if industry:      criteria_lines.append(f"Industry/sector: {industry}")
+    if stage:         criteria_lines.append(f"Funding stage: {stage}")
+    if product:       criteria_lines.append(f"Product type: {product}")
+    if date_founded:  criteria_lines.append(f"Founded: {date_founded}")
+    criteria_str = "\n".join(criteria_lines) if criteria_lines else "any startup"
+
+    prompt = f"""List {min(limit * 2, 20)} real, publicly known startup founders that match ALL of the following criteria:
+{criteria_str}
+
+Return ONLY a valid JSON array — no markdown, no explanation, no code fences — just the raw JSON:
+[{{"name": "Full Name", "company": "Company Name", "role": "Founder/CEO/CTO", "product_desc": "One sentence on what they build"}}]
+
+Rules:
+- Only include real people with verifiable public presence
+- Each entry must have both a name and a company
+- Prefer founders who have raised funding or have notable public profiles
+- Vary the list — don't cluster around only the most famous names"""
+
+    try:
+        client = anthropic.AsyncAnthropic(api_key=api_key)
+        resp = await client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = resp.content[0].text.strip()
+
+        # Extract JSON array (handle any surrounding whitespace or stray text)
+        match = re.search(r'\[[\s\S]*\]', text)
+        if not match:
+            return []
+
+        raw = json.loads(match.group(0))
+        results = []
+        seen = set()
+        for f in raw:
+            name = (f.get("name") or "").strip()
+            company = (f.get("company") or "").strip()
+            if not name or not company:
+                continue
+            key = name.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            results.append({
+                "name": name,
+                "company": company,
+                "role": f.get("role") or "Founder",
+                "product_desc": f.get("product_desc") or "",
+                "source": "AI-discovered",
+                "url": "",
+            })
+        return results[:limit]
+    except Exception as exc:
+        print(f"[discovery] Claude seed failed: {exc}", flush=True)
+        return []
+
 
 async def discover_founders(
     industry: str,
@@ -201,9 +445,6 @@ async def discover_founders(
     # Calculate results per source to balance coverage
     per_source = max(5, (limit * 3) // len(active_sources))
 
-    # --- Run sources concurrently in batches (3 at a time to avoid rate limits) ---
-    BATCH_SIZE = 3
-
     async def _search_source(source: Source) -> List[Dict[str, str]]:
         """Search a single source with primary + fallback queries."""
         query = f"{source.site_query} {core_criteria}"
@@ -223,33 +464,36 @@ async def discover_founders(
             fallback_parts.append("founder")
             fallback_query = " ".join(fallback_parts)
 
-            await asyncio.sleep(0.3)
             raw = await multi_search(fallback_query, max_results=per_source)
 
         print(f"[discovery] Source {source.key}: query={query[:80]!r} → {len(raw)} raw results", flush=True)
         return raw
 
-    # Process sources in batches of BATCH_SIZE concurrently
+    # Run Claude seed + all web sources concurrently
+    claude_task = asyncio.create_task(_claude_seed_founders(
+        industry or "", stage, product, date_founded, limit
+    ))
+    web_tasks = [_search_source(src) for src in active_sources]
+    all_tasks_results = await asyncio.gather(claude_task, *web_tasks, return_exceptions=True)
+
+    claude_results = all_tasks_results[0] if not isinstance(all_tasks_results[0], Exception) else []
+    web_task_results = all_tasks_results[1:]
+
+    # Add Claude-seeded founders first (highest signal)
+    for entry in claude_results:
+        name_key = entry["name"].lower().strip()
+        if name_key not in seen_names and len(name_key) >= 3:
+            seen_names.add(name_key)
+            all_results.append(entry)
+            print(f"[discovery] SEEDED: {entry['name']} @ {entry.get('company', '?')}", flush=True)
+
+    # Collect web search results
     source_results: List[tuple] = []  # [(source, results), ...]
-    for batch_start in range(0, len(active_sources), BATCH_SIZE):
-        if len(all_results) >= limit:
-            break
-
-        batch = active_sources[batch_start:batch_start + BATCH_SIZE]
-
-        # Small delay between batches (not between individual sources)
-        if batch_start > 0:
-            await asyncio.sleep(1.0)
-
-        # Run batch concurrently
-        batch_tasks = [_search_source(src) for src in batch]
-        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
-
-        for source, raw_results in zip(batch, batch_results):
-            if isinstance(raw_results, Exception):
-                print(f"[discovery] Source {source.key} failed: {raw_results}", flush=True)
-                continue
-            source_results.append((source, raw_results))
+    for source, raw_results in zip(active_sources, web_task_results):
+        if isinstance(raw_results, Exception):
+            print(f"[discovery] Source {source.key} failed: {raw_results}", flush=True)
+            continue
+        source_results.append((source, raw_results))
 
     # --- Process all results ---
     for source, raw_results in source_results:
@@ -337,7 +581,7 @@ _NOT_A_PERSON = {
     "product hunt", "producthunt", "angellist", "wellfound", "techstars",
     "y combinator", "on deck", "buildspace", "pioneer", "substack",
     "entrepreneur first", "medium", "startups", "companies", "funded",
-    "health tech", "fintech", "saas", "series", "seed", "pre-seed",
+    "series", "seed", "pre-seed",
 }
 
 # Job titles that get mistaken for names
@@ -391,9 +635,9 @@ def _looks_like_person_name(name: str) -> bool:
     lower_words = {w.lower().rstrip(".,") for w in words}
     non_name = {"the", "for", "and", "with", "how", "why", "what", "top",
                 "best", "new", "app", "tool", "tools", "platform", "powering",
-                "makers", "devops", "software", "startup", "startups", "tech",
+                "makers", "devops", "software", "startup", "startups",
                 "digital", "global", "review", "list", "guide", "free",
-                "ai", "nvidia", "google", "amazon", "meta", "apple", "microsoft"}
+                "nvidia", "google", "amazon", "meta", "apple", "microsoft"}
     if lower_words & non_name:
         return False
     return True

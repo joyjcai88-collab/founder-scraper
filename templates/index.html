@@ -6,65 +6,78 @@
   <title>VC Scout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-base:      #F9F8F6;
-      --bg-surface:   #FFFFFF;
-      --bg-elevated:  #F3F2F0;
-      --bg-input:     #FFFFFF;
-      --border:       #E3E2DF;
-      --border-hi:    #C8C7C3;
-      --fg:           #0D0D0B;
-      --fg-muted:     #5C5C58;
-      --fg-subtle:    #9A9A96;
-      --accent:       #0D0D0B;
-      --accent-hi:    #383836;
-      --accent-dim:   rgba(13,13,11,0.06);
-      --accent-dim2:  rgba(13,13,11,0.11);
-      --danger:       #B83020;
-      --danger-dim:   rgba(184,48,32,0.08);
-      --success:      #1E6B3C;
-      --success-dim:  rgba(30,107,60,0.08);
-      --warn:         #8B5E00;
-      --warn-dim:     rgba(139,94,0,0.08);
+      --bg-surface:   rgba(10,14,40,0.45);
+      --bg-elevated:  rgba(10,14,40,0.60);
+      --bg-input:     rgba(10,14,40,0.50);
+      --border:       rgba(255,255,255,0.18);
+      --border-hi:    rgba(255,255,255,0.40);
+      --fg:           #ffffff;
+      --fg-muted:     rgba(255,255,255,0.90);
+      --fg-subtle:    rgba(255,255,255,0.62);
+      --accent:       #ffffff;
+      --accent-hi:    #ffffff;
+      --accent-dim:   rgba(255,255,255,0.10);
+      --accent-dim2:  rgba(255,255,255,0.18);
+      --btn-bg:       #ffffff;
+      --btn-fg:       #141C50;
+      --danger:       #FF8C6E;
+      --danger-dim:   rgba(255,130,100,0.25);
+      --success:      #5DDFA0;
+      --success-dim:  rgba(80,210,150,0.25);
+      --warn:         #F5C842;
+      --warn-dim:     rgba(245,200,60,0.25);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-base); color: var(--fg); min-height: 100vh; -webkit-font-smoothing: antialiased; font-size: 14px; font-weight: 300; }
-    .container { max-width: 1040px; margin: 0 auto; padding: 56px 40px; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh; color: var(--fg);
+      -webkit-font-smoothing: antialiased; font-size: 14px; font-weight: 400;
+      background-color: #0E1535;
+      background-image:
+        radial-gradient(ellipse at 88% 10%, #9B6E1A 0%, transparent 48%),
+        radial-gradient(ellipse at 10% 88%, #0A1260 0%, transparent 50%),
+        linear-gradient(150deg, #0E1535 0%, #1A2460 55%, #22305A 100%);
+      background-attachment: fixed;
+    }
+    .container { max-width: 1040px; margin: 0 auto; padding: 60px 48px; }
 
     /* Wordmark */
-    h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 28px; font-weight: 400; margin-bottom: 4px; color: var(--fg); letter-spacing: -0.5px; }
-    .subtitle { color: var(--fg-subtle); margin-bottom: 40px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 400; }
+    h1 { font-family: 'DM Sans', -apple-system, sans-serif; font-size: 28px; font-weight: 300; margin-bottom: 4px; color: var(--fg); letter-spacing: -0.5px; }
+    .subtitle { color: var(--fg-muted); margin-bottom: 40px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 400; }
 
     /* Tabs — hairline underline style */
     .tabs { display: flex; gap: 0; margin-bottom: 36px; border-bottom: 1px solid var(--border); }
-    .tab { padding: 10px 20px 10px 0; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-subtle); cursor: pointer; border-bottom: 1px solid transparent; transition: color 0.12s; margin-bottom: -1px; }
-    .tab:hover { color: var(--fg-muted); }
-    .tab.active { color: var(--fg); border-bottom-color: var(--fg); }
+    .tab { padding: 10px 20px 10px 0; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-subtle); cursor: pointer; border-bottom: 1px solid transparent; transition: color 0.12s; margin-bottom: -1px; }
+    .tab:hover { color: var(--fg); }
+    .tab.active { color: var(--fg); border-bottom-color: rgba(255,255,255,0.8); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
     /* Forms */
     .discover-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
     .discover-form input, .discover-form select {
-      background: var(--bg-input); border: 1px solid var(--border); border-radius: 2px;
-      padding: 10px 14px; color: var(--fg); font-size: 13px; font-family: inherit; font-weight: 300;
+      background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 14px; color: var(--fg); font-size: 13px; font-family: inherit; font-weight: 400;
       outline: none; width: 100%; transition: border-color 0.12s;
+      backdrop-filter: blur(8px);
     }
     .discover-form input::placeholder { color: var(--fg-subtle); }
-    .discover-form input:focus, .discover-form select:focus { border-color: var(--fg-muted); }
+    .discover-form input:focus, .discover-form select:focus { border-color: var(--border-hi); }
     .discover-form select { appearance: none; cursor: pointer; }
-    .discover-form select option { background: var(--bg-surface); }
+    .discover-form select option { background: #5868B0; color: #fff; }
     .discover-form .full-width { grid-column: 1 / -1; }
     .discover-form button {
-      grid-column: 1 / -1; background: var(--fg); color: var(--bg-base);
-      border: none; border-radius: 2px; padding: 11px 24px; font-size: 11px;
-      cursor: pointer; font-weight: 500; font-family: inherit; letter-spacing: 0.08em; text-transform: uppercase;
-      transition: opacity 0.12s;
+      grid-column: 1 / -1; background: var(--btn-bg); color: var(--btn-fg);
+      border: none; border-radius: 6px; padding: 12px 24px; font-size: 11px;
+      cursor: pointer; font-weight: 600; font-family: inherit; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: opacity 0.12s; box-shadow: 0 2px 12px rgba(0,0,0,0.18);
     }
-    .discover-form button:hover { opacity: 0.8; }
+    .discover-form button:hover { opacity: 0.88; }
     .discover-form button:disabled { opacity: 0.35; cursor: not-allowed; }
 
     .loading { display: none; text-align: center; padding: 64px 24px; color: var(--fg-muted); }
@@ -73,13 +86,13 @@
     .spinner { display: inline-block; width: 20px; height: 20px; border: 1px solid var(--border-hi); border-top-color: var(--fg); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .error { background: var(--danger-dim); border: 1px solid rgba(184,48,32,0.25); border-radius: 2px; padding: 12px 16px; margin-bottom: 20px; color: var(--danger); display: none; font-size: 13px; }
+    .error { background: var(--danger-dim); border: 1px solid rgba(255,130,100,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: var(--danger); display: none; font-size: 13px; backdrop-filter: blur(8px); }
 
     /* Profile card */
-    .card { display: none; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+    .card { display: none; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; backdrop-filter: blur(20px) saturate(160%); }
     .card.active { display: block; }
     .card-header { padding: 28px 32px; border-bottom: 1px solid var(--border); }
-    .card-header h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 22px; font-weight: 400; color: var(--fg); }
+    .card-header h2 { font-family: 'DM Sans', -apple-system, sans-serif; font-size: 22px; font-weight: 500; color: var(--fg); }
     .card-header .company { color: var(--fg-muted); font-size: 12px; margin-top: 4px; letter-spacing: 0.03em; }
 
     .section { padding: 24px 32px; border-bottom: 1px solid var(--border); }
@@ -104,10 +117,10 @@
     .edu-school { font-size: 13px; font-weight: 500; color: var(--fg); }
     .edu-degree { font-size: 12px; color: var(--fg-muted); font-weight: 300; }
     .skills-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .skill-tag { background: transparent; border: 1px solid var(--border); border-radius: 1px; padding: 3px 10px; font-size: 11px; color: var(--fg-muted); letter-spacing: 0.03em; }
+    .skill-tag { background: var(--accent-dim); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--fg-muted); letter-spacing: 0.03em; }
     .social-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--fg-muted); text-decoration: none; padding: 3px 0; margin-right: 16px; }
     .social-link:hover { color: var(--fg); text-decoration: underline; }
-    .confidence-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 2px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+    .confidence-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
     .confidence-high { background: var(--success-dim); color: var(--success); }
     .confidence-mid { background: var(--warn-dim); color: var(--warn); }
     .confidence-low { background: var(--danger-dim); color: var(--danger); }
@@ -117,15 +130,17 @@
     .discover-results.active { display: block; }
     .discover-header { font-size: 11px; color: var(--fg-subtle); margin-bottom: 20px; letter-spacing: 0.04em; text-transform: uppercase; }
     .discover-header span { color: var(--fg-muted); }
-    .founder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .founder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: transparent; border: none; }
     @media (max-width: 900px) { .founder-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px) { .founder-grid { grid-template-columns: 1fr; } }
     .founder-row {
       display: flex; flex-direction: column; padding: 22px 20px; background: var(--bg-surface);
-      cursor: pointer; transition: background 0.1s; position: relative;
+      cursor: pointer; transition: background 0.15s; position: relative;
+      border-radius: 10px; border: 1px solid var(--border);
+      backdrop-filter: blur(16px) saturate(150%);
     }
     .founder-row:hover { background: var(--bg-elevated); }
-    .founder-row .rank { font-size: 10px; font-weight: 400; color: var(--fg-subtle); margin-bottom: 10px; letter-spacing: 0.06em; font-family: 'DM Serif Display', Georgia, serif; }
+    .founder-row .rank { font-size: 10px; font-weight: 400; color: var(--fg-subtle); margin-bottom: 10px; letter-spacing: 0.06em; font-family: 'DM Sans', sans-serif; }
     .founder-row .info { flex: 1; }
     .founder-row .info .fname { font-size: 14px; font-weight: 500; margin-bottom: 3px; color: var(--fg); }
     .founder-row .info .fmeta { font-size: 11px; color: var(--fg-muted); margin-top: 1px; font-weight: 300; }
@@ -134,7 +149,7 @@
     .founder-row .info .fdetails .fdetail .flabel { color: var(--fg-subtle); margin-right: 4px; text-transform: uppercase; font-size: 9px; letter-spacing: 0.06em; font-weight: 500; }
     .founder-row .ferror { font-size: 11px; color: var(--danger); margin-top: 10px; }
 
-    .product-eval { margin-top: 14px; padding: 12px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 1px; }
+    .product-eval { margin-top: 14px; padding: 12px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; backdrop-filter: blur(8px); }
     .product-eval .pe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .product-eval .pe-title { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-subtle); }
     .product-eval .pe-score { font-size: 13px; font-weight: 500; color: var(--fg); }
@@ -152,7 +167,7 @@
     .product-eval .pe-signals { font-size: 10px; color: var(--fg-subtle); margin-top: 4px; line-height: 1.4; }
 
     /* Source badges — monochrome, minimal */
-    .source-badge { display: inline-block; font-size: 9px; font-weight: 500; padding: 2px 6px; border-radius: 1px; margin-right: 4px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--border); background: transparent; color: var(--fg-subtle); }
+    .source-badge { display: inline-block; font-size: 9px; font-weight: 500; padding: 2px 7px; border-radius: 12px; margin-right: 4px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--border); background: var(--accent-dim); color: var(--fg-subtle); }
     .source-yc         { border-color: rgba(184,48,32,0.35); color: var(--danger); background: var(--danger-dim); }
     .source-linkedin, .source-crunchbase, .source-twitter, .source-wellfound,
     .source-producthunt, .source-ondeck, .source-ef, .source-techstars,
@@ -161,25 +176,25 @@
     .source-filters { margin-bottom: 20px; }
     .source-filters summary { font-size: 11px; color: var(--fg-subtle); cursor: pointer; margin-bottom: 8px; user-select: none; text-transform: uppercase; letter-spacing: 0.06em; }
     .source-filters summary:hover { color: var(--fg-muted); }
-    .source-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 2px; }
+    .source-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; backdrop-filter: blur(12px); }
     .source-checkboxes label { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--fg-muted); cursor: pointer; padding: 3px 8px; transition: color 0.1s; letter-spacing: 0.02em; }
     .source-checkboxes label:hover { color: var(--fg); }
     .source-checkboxes input[type="checkbox"] { accent-color: var(--fg); }
 
     .founder-detail { display: none; margin-top: 16px; }
     .founder-detail.active { display: block; }
-    .back-btn { background: transparent; border: 1px solid var(--border); color: var(--fg-subtle); padding: 7px 14px; border-radius: 2px; cursor: pointer; font-size: 11px; font-family: inherit; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; transition: all 0.1s; }
-    .back-btn:hover { color: var(--fg); border-color: var(--fg); }
+    .back-btn { background: var(--accent-dim); border: 1px solid var(--border); color: var(--fg-muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; transition: all 0.1s; backdrop-filter: blur(8px); }
+    .back-btn:hover { color: var(--fg); border-color: var(--border-hi); }
 
     .progress-bar { width: 100%; height: 2px; background: var(--border); border-radius: 0; margin-top: 16px; overflow: hidden; }
     .progress-fill { height: 100%; background: var(--fg); transition: width 0.3s; }
     .progress-text { font-size: 10px; color: var(--fg-subtle); margin-top: 8px; letter-spacing: 0.04em; }
 
     /* Save button */
-    .save-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--border); color: var(--fg-subtle); padding: 5px 11px; border-radius: 2px; cursor: pointer; font-size: 9px; font-weight: 500; font-family: inherit; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; margin-top: 12px; }
-    .save-btn:hover { color: var(--fg); border-color: var(--fg); }
-    .save-btn.saved { background: var(--fg); border-color: var(--fg); color: var(--bg-base); }
-    .save-btn.saved:hover { background: var(--danger); border-color: var(--danger); }
+    .save-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-dim); border: 1px solid var(--border); color: var(--fg-muted); padding: 5px 11px; border-radius: 6px; cursor: pointer; font-size: 9px; font-weight: 500; font-family: inherit; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; margin-top: 12px; backdrop-filter: blur(8px); }
+    .save-btn:hover { color: var(--fg); border-color: var(--border-hi); }
+    .save-btn.saved { background: var(--btn-bg); border-color: transparent; color: var(--btn-fg); }
+    .save-btn.saved:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
     .save-btn svg { width: 12px; height: 12px; }
 
     /* Saved tab */
@@ -187,7 +202,7 @@
     .saved-count { font-size: 11px; color: var(--fg-subtle); letter-spacing: 0.04em; text-transform: uppercase; }
     .saved-count span { font-weight: 500; color: var(--fg); }
     .export-btns { display: flex; gap: 6px; }
-    .export-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border); color: var(--fg-subtle); padding: 7px 14px; border-radius: 2px; cursor: pointer; font-size: 10px; font-weight: 500; font-family: inherit; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; text-decoration: none; }
+    .export-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid var(--border); color: var(--fg-muted); padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: 500; font-family: inherit; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; text-decoration: none; backdrop-filter: blur(8px); }
     .export-btn:hover { color: var(--fg); border-color: var(--fg); }
     .export-btn svg { width: 13px; height: 13px; }
 
@@ -195,9 +210,9 @@
     .saved-empty svg { width: 40px; height: 40px; margin-bottom: 16px; color: var(--border-hi); }
     .saved-empty p { font-size: 13px; margin-bottom: 4px; color: var(--fg-muted); font-weight: 300; }
     .saved-empty .hint { font-size: 11px; }
-    .saved-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .saved-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: transparent; border: none; }
     @media (max-width: 700px) { .saved-grid { grid-template-columns: 1fr; } }
-    .saved-card { background: var(--bg-surface); padding: 20px; display: flex; flex-direction: column; }
+    .saved-card { background: var(--bg-surface); padding: 20px; display: flex; flex-direction: column; border-radius: 10px; border: 1px solid var(--border); backdrop-filter: blur(16px) saturate(150%); }
     .saved-card .saved-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .saved-card .saved-name { font-size: 14px; font-weight: 500; color: var(--fg); }
     .saved-card .saved-company { font-size: 11px; color: var(--fg-muted); margin-bottom: 8px; font-weight: 300; }
@@ -206,15 +221,15 @@
     .saved-card .saved-detail .slabel { color: var(--fg-subtle); margin-right: 4px; text-transform: uppercase; font-size: 9px; letter-spacing: 0.06em; font-weight: 500; }
     .saved-card .saved-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
     .saved-card .notes-area { margin-top: 10px; }
-    .saved-card .notes-area textarea { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 2px; font-size: 12px; font-family: inherit; color: var(--fg); resize: vertical; background: var(--bg-elevated); transition: border-color 0.12s; font-weight: 300; }
+    .saved-card .notes-area textarea { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: inherit; color: var(--fg); resize: vertical; background: var(--bg-input); transition: border-color 0.12s; font-weight: 400; backdrop-filter: blur(8px); }
     .saved-card .notes-area textarea::placeholder { color: var(--fg-subtle); }
     .saved-card .notes-area textarea:focus { border-color: var(--fg); outline: none; }
     .saved-card .notes-saved { font-size: 10px; color: var(--success); margin-top: 4px; display: none; letter-spacing: 0.04em; text-transform: uppercase; }
-    .remove-btn { display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border); color: var(--fg-subtle); padding: 4px 10px; border-radius: 2px; cursor: pointer; font-size: 9px; font-weight: 500; font-family: inherit; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.12s; }
+    .remove-btn { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-dim); border: 1px solid var(--border); color: var(--fg-subtle); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 9px; font-weight: 500; font-family: inherit; letter-spacing: 0.06em; text-transform: uppercase; transition: all 0.12s; backdrop-filter: blur(8px); }
     .remove-btn:hover { border-color: var(--danger); color: var(--danger); }
     .saved-date { font-size: 10px; color: var(--fg-subtle); margin-top: auto; padding-top: 8px; letter-spacing: 0.03em; }
 
-    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--fg); color: var(--bg-base); padding: 10px 18px; border-radius: 2px; font-size: 12px; font-weight: 400; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.12); letter-spacing: 0.02em; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--btn-bg); color: var(--btn-fg); padding: 10px 18px; border-radius: 8px; font-size: 12px; font-weight: 500; z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.2s ease; box-shadow: 0 4px 24px rgba(0,0,0,0.22); letter-spacing: 0.02em; }
     .toast.visible { transform: translateY(0); opacity: 1; }
 
     /* Selection checkboxes */
@@ -222,28 +237,28 @@
     .founder-row.selected { background: var(--bg-elevated); outline: 2px solid var(--fg-subtle); outline-offset: -2px; }
 
     /* Sticky outreach bar */
-    .outreach-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--fg); color: var(--bg-base); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; z-index: 500; transform: translateY(100%); transition: transform 0.2s ease; }
+    .outreach-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(28,43,106,0.85); backdrop-filter: blur(20px) saturate(160%); color: rgba(255,255,255,0.92); border-top: 1px solid rgba(255,255,255,0.18); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; z-index: 500; transform: translateY(100%); transition: transform 0.2s ease; }
     .outreach-bar.visible { transform: translateY(0); }
-    .outreach-bar-left { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 300; }
-    .outreach-bar-count { background: var(--bg-base); color: var(--fg); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 1px; letter-spacing: 0.04em; }
+    .outreach-bar-left { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 400; }
+    .outreach-bar-count { background: rgba(255,255,255,0.2); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; border: 1px solid rgba(255,255,255,0.3); }
     .outreach-bar-clear { color: rgba(255,255,255,0.5); font-size: 11px; cursor: pointer; text-decoration: underline; letter-spacing: 0.04em; }
     .outreach-bar-clear:hover { color: rgba(255,255,255,0.8); }
-    .outreach-bar-btn { background: var(--bg-base); color: var(--fg); border: none; padding: 9px 20px; border-radius: 2px; font-size: 10px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 8px; letter-spacing: 0.07em; text-transform: uppercase; transition: opacity 0.12s; }
-    .outreach-bar-btn:hover { opacity: 0.8; }
+    .outreach-bar-btn { background: var(--btn-bg); color: var(--btn-fg); border: none; padding: 9px 20px; border-radius: 6px; font-size: 10px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 8px; letter-spacing: 0.07em; text-transform: uppercase; transition: opacity 0.12s; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .outreach-bar-btn:hover { opacity: 0.85; }
 
     /* Outreach panel */
-    .outreach-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .outreach-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(2px); }
     .outreach-overlay.visible { opacity: 1; pointer-events: all; }
-    .outreach-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100vw; background: var(--bg-surface); border-left: 1px solid var(--border); z-index: 700; box-shadow: -4px 0 32px rgba(0,0,0,0.08); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+    .outreach-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100vw; background: rgba(50,65,130,0.72); backdrop-filter: blur(24px) saturate(160%); border-left: 1px solid rgba(255,255,255,0.18); z-index: 700; box-shadow: -8px 0 48px rgba(0,0,0,0.28); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
     .outreach-panel.visible { transform: translateX(0); }
     .op-header { padding: 20px 24px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .op-header h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 18px; font-weight: 400; color: var(--fg); }
+    .op-header h2 { font-family: 'DM Sans', -apple-system, sans-serif; font-size: 18px; font-weight: 500; color: var(--fg); }
     .op-close { background: none; border: none; cursor: pointer; color: var(--fg-subtle); padding: 4px; transition: color 0.1s; }
     .op-close:hover { color: var(--fg); }
     .op-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
     .op-section-title { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-subtle); margin-bottom: 8px; }
     .op-founders-list { display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; }
-    .op-founder-chip { display: flex; align-items: center; justify-content: space-between; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 2px; padding: 7px 12px; font-size: 12px; color: var(--fg-muted); }
+    .op-founder-chip { display: flex; align-items: center; justify-content: space-between; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; font-size: 12px; color: var(--fg-muted); }
     .op-founder-chip .chip-name { font-weight: 500; color: var(--fg); }
     .op-founder-chip .chip-co { color: var(--fg-subtle); margin-left: 6px; font-weight: 300; }
     .op-founder-chip .chip-rm { background: none; border: none; color: var(--fg-subtle); cursor: pointer; padding: 0 4px; font-size: 14px; line-height: 1; transition: color 0.1s; }
@@ -252,28 +267,29 @@
     .op-field { display: flex; flex-direction: column; gap: 5px; }
     .op-field label { font-size: 9px; font-weight: 500; color: var(--fg-subtle); text-transform: uppercase; letter-spacing: 0.08em; }
     .op-field select, .op-field textarea {
-      border: 1px solid var(--border); border-radius: 2px; padding: 9px 12px;
-      font-size: 13px; font-family: inherit; color: var(--fg); font-weight: 300;
+      border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px;
+      font-size: 13px; font-family: inherit; color: var(--fg); font-weight: 400;
       background: var(--bg-input); outline: none; transition: border-color 0.12s;
+      backdrop-filter: blur(8px);
     }
-    .op-field select option { background: var(--bg-surface); }
+    .op-field select option { background: #3A50A0; color: #fff; }
     .op-field select:focus, .op-field textarea:focus { border-color: var(--fg); }
     .op-field textarea { resize: vertical; min-height: 68px; }
     .op-field textarea::placeholder { color: var(--fg-subtle); }
-    .op-generate-btn { background: var(--fg); color: var(--bg-base); border: none; padding: 12px; border-radius: 2px; font-size: 10px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.08em; text-transform: uppercase; transition: opacity 0.12s; }
+    .op-generate-btn { background: var(--btn-bg); color: var(--btn-fg); border: none; padding: 12px; border-radius: 6px; font-size: 10px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.08em; text-transform: uppercase; transition: opacity 0.12s; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
     .op-generate-btn:hover { opacity: 0.8; }
     .op-generate-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .op-messages { display: flex; flex-direction: column; gap: 12px; }
-    .op-msg-card { border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+    .op-msg-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; backdrop-filter: blur(8px); }
     .op-msg-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
     .op-msg-name { font-size: 12px; font-weight: 500; color: var(--fg); }
     .op-msg-co { font-size: 11px; color: var(--fg-muted); margin-left: 5px; font-weight: 300; }
-    .op-msg-copy { background: transparent; border: 1px solid var(--border); color: var(--fg-subtle); padding: 3px 9px; border-radius: 2px; font-size: 9px; font-family: inherit; cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; transition: all 0.1s; }
+    .op-msg-copy { background: var(--accent-dim); border: 1px solid var(--border); color: var(--fg-subtle); padding: 3px 9px; border-radius: 6px; font-size: 9px; font-family: inherit; cursor: pointer; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; transition: all 0.1s; backdrop-filter: blur(4px); }
     .op-msg-copy:hover { color: var(--fg); border-color: var(--fg); }
     .op-msg-subject { font-size: 11px; font-weight: 500; color: var(--fg-subtle); padding: 10px 14px 0; letter-spacing: 0.02em; }
     .op-msg-body { padding: 10px 14px; font-size: 12px; color: var(--fg-muted); line-height: 1.7; white-space: pre-wrap; font-weight: 300; }
     .op-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
-    .op-copy-all-btn { flex: 1; background: transparent; color: var(--fg-muted); border: 1px solid var(--border); padding: 10px; border-radius: 2px; font-size: 10px; font-weight: 500; font-family: inherit; cursor: pointer; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; }
+    .op-copy-all-btn { flex: 1; background: var(--accent-dim); color: var(--fg-muted); border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 10px; font-weight: 500; font-family: inherit; cursor: pointer; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s; backdrop-filter: blur(8px); }
     .op-copy-all-btn:hover { color: var(--fg); border-color: var(--fg); }
     .op-loading { text-align: center; padding: 32px 16px; color: var(--fg-muted); }
     .op-loading .spinner { display: inline-block; width: 18px; height: 18px; border: 1px solid var(--border-hi); border-top-color: var(--fg); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 10px; }
@@ -286,7 +302,7 @@
 
     <div class="tabs">
       <div class="tab active" data-tab="discover">Discover Founders</div>
-      <div class="tab" data-tab="saved">Saved <span id="savedTabCount" style="background:var(--bg-elevated);color:var(--fg-muted);font-size:10px;padding:1px 7px;border-radius:1px;margin-left:6px;display:none;border:1px solid var(--border);letter-spacing:0.04em">0</span></div>
+      <div class="tab" data-tab="saved">Saved <span id="savedTabCount" style="background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-size:10px;padding:1px 8px;border-radius:12px;margin-left:6px;display:none;border:1px solid rgba(255,255,255,0.25);letter-spacing:0.04em">0</span></div>
     </div>
 
     <!-- ===== DISCOVER TAB ===== -->
@@ -305,6 +321,16 @@
         <input type="text" name="date_founded" placeholder="Founded (e.g., 2023, after 2020)">
         <button type="submit" id="discoverBtn">Discover Founders</button>
       </form>
+      <button id="scanAllBtn" style="
+        width:100%; margin-bottom:8px; padding:11px 24px;
+        background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.28);
+        border-radius:6px; color:rgba(255,255,255,0.75); font-size:11px;
+        font-family:inherit; font-weight:500; letter-spacing:0.08em; text-transform:uppercase;
+        cursor:pointer; transition:all 0.15s; backdrop-filter:blur(8px);
+      " onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.color='#fff'"
+         onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.color='rgba(255,255,255,0.75)'">
+        ⚡ Scan All LinkedIn Industries
+      </button>
 
       <details class="source-filters" id="sourceFilters">
         <summary>Sources (click to customize)</summary>
@@ -824,143 +850,174 @@
       discoverResults.classList.add('active');
     });
 
-    discoverForm.addEventListener('submit', async (e) => {
+    function renderFounderCard(f, i) {
+      const badge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}">${esc(f.source)}</span>` : '';
+      const details = [
+        f.industry ? `<span class="fdetail"><span class="flabel">Industry:</span>${esc(f.industry)}</span>` : '',
+        f.stage ? `<span class="fdetail"><span class="flabel">Stage:</span>${esc(f.stage)}</span>` : '',
+        f.date_founded ? `<span class="fdetail"><span class="flabel">Founded:</span>${esc(f.date_founded)}</span>` : '',
+        f.product ? `<span class="fdetail"><span class="flabel">Product:</span>${esc(f.product)}</span>` : '',
+        f.product_desc ? `<span class="fdetail" style="color:var(--fg-muted);margin-top:4px"><span class="flabel">Building:</span>${esc(f.product_desc)}</span>` : '',
+      ].filter(Boolean).join('');
+
+      let evalHtml = '';
+      if (f.product_eval && f.product_eval.product_score > 0) {
+        const pe = f.product_eval;
+        const pc = pe.product_score >= 65 ? 'green' : (pe.product_score >= 40 ? 'yellow' : 'red');
+        const tagClass = (val) => {
+          const v = (val || '').toLowerCase();
+          if (v === 'high' || v === 'strong') return 'pe-tag-high';
+          if (v === 'medium' || v === 'moderate') return 'pe-tag-medium';
+          return 'pe-tag-low';
+        };
+        const signals = [
+          pe.market_potential ? `<span class="pe-tag ${tagClass(pe.market_potential)}">Market: ${esc(pe.market_potential)}</span>` : '',
+          pe.innovation_signal ? `<span class="pe-tag ${tagClass(pe.innovation_signal)}">Innovation: ${esc(pe.innovation_signal)}</span>` : '',
+          pe.scalability ? `<span class="pe-tag ${tagClass(pe.scalability)}">Scale: ${esc(pe.scalability)}</span>` : '',
+          pe.product_stage ? `<span class="pe-tag pe-tag-moderate">${esc(pe.product_stage)}</span>` : '',
+        ].filter(Boolean).join('');
+        evalHtml = `<div class="product-eval">
+          <div class="pe-header"><span class="pe-title">Product Eval</span><span class="pe-score score-${pc}">${pe.product_score}/100</span></div>
+          <div class="pe-bar"><div class="pe-bar-fill bar-${pc}" style="width:${pe.product_score}%"></div></div>
+          <div class="pe-tags">${signals}</div>
+          <div class="pe-verdict">${esc(pe.verdict)}</div>
+          ${(pe.strengths && pe.strengths.length) ? `<div class="pe-signals">+ ${pe.strengths.map(s => esc(s)).join(' · ')}</div>` : ''}
+          ${(pe.risks && pe.risks.length) ? `<div class="pe-signals" style="color:var(--danger)">- ${pe.risks.map(r => esc(r)).join(' · ')}</div>` : ''}
+        </div>`;
+      }
+
+      const isSaved = isFounderSaved(f.name, f.company);
+      const saveIcon = isSaved ? bookmarkFilled : bookmarkOutline;
+      const saveClass = isSaved ? 'save-btn saved' : 'save-btn';
+      const saveLabel = isSaved ? 'Saved' : 'Save';
+      const isSelected = selectedForOutreach.has(i);
+      const selectCb = `<input type="checkbox" class="founder-select-cb" id="outreach-cb-${i}" ${isSelected ? 'checked' : ''}
+        onclick="event.stopPropagation(); toggleOutreachSelect(${i}, this.checked)" title="Select for outreach">`;
+
+      if (f.error) {
+        return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}">
+          ${selectCb}<div class="rank">#${i + 1}</div>
+          <div class="info"><div class="fname">${esc(f.name)}</div>${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}${details ? `<div class="fdetails">${details}</div>` : ''}<div class="fmeta" style="margin-top:6px">${badge}</div></div>
+          ${evalHtml}
+          <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
+          <div class="ferror">${esc(f.error)}</div>
+        </div>`;
+      }
+      return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}" onclick="showFounderDetail(${i})" style="cursor:pointer">
+        ${selectCb}<div class="rank">#${i + 1}</div>
+        <div class="info"><div class="fname">${esc(f.name)}</div>${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}${details ? `<div class="fdetails">${details}</div>` : ''}<div class="fmeta" style="margin-top:6px">${badge}</div></div>
+        ${evalHtml}
+        <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
+      </div>`;
+    }
+
+    discoverForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const industry = discoverForm.industry.value.trim();
       const stage = discoverForm.stage.value;
       const product = discoverForm.product.value.trim();
       const date_founded = discoverForm.date_founded.value.trim();
 
-      // Need at least one field filled
       if (!industry && !stage && !product && !date_founded) {
         discoverError.textContent = 'Please fill in at least one search field.';
         discoverError.style.display = 'block';
         return;
       }
 
+      const selectedSources = Array.from(
+        document.querySelectorAll('#sourceCheckboxes input[type="checkbox"]:checked')
+      ).map(cb => cb.value);
+
+      const params = new URLSearchParams();
+      if (industry) params.set('industry', industry);
+      if (stage) params.set('stage', stage);
+      if (product) params.set('product', product);
+      if (date_founded) params.set('date_founded', date_founded);
+      if (selectedSources.length) params.set('sources', selectedSources.join(','));
+      params.set('limit', '5');
+
+      runStream('/api/discover/stream?' + params.toString(), 'Searching across sources...');
+    });
+
+    // --- Scan All LinkedIn Industries ---
+    async function runStream(url, labelText) {
       discoverLoading.classList.add('active');
       discoverResults.classList.remove('active');
       founderDetail.classList.remove('active');
       discoverError.style.display = 'none';
       discoverBtn.disabled = true;
-      document.getElementById('discoverProgress').style.width = '10%';
-      document.getElementById('discoverProgressText').textContent = 'Searching for founders...';
+      document.getElementById('scanAllBtn').disabled = true;
+      discoveredFounders = [];
+      founderList.innerHTML = '';
+      document.getElementById('discoverProgress').style.width = '8%';
+      document.getElementById('discoverProgressText').textContent = labelText;
 
-      // Collect selected sources
-      const selectedSources = Array.from(
-        document.querySelectorAll('#sourceCheckboxes input[type="checkbox"]:checked')
-      ).map(cb => cb.value);
-
+      let totalExpected = 0, loaded = 0;
       try {
-        const resp = await fetch('/api/discover', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            industry,
-            stage: stage || null,
-            product: product || null,
-            date_founded: date_founded || null,
-            sources: selectedSources.length ? selectedSources : null,
-          }),
-        });
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Request failed (${resp.status})`);
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({ detail: 'Discovery failed' }));
-          throw new Error(err.detail || `Error ${resp.status}`);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            let evt;
+            try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+            if (evt.type === 'count') {
+              totalExpected = evt.total;
+              document.getElementById('discoverHeader').innerHTML =
+                `Scanning <span>${totalExpected}</span> founders across: <span>${esc(evt.query)}</span>`;
+              document.getElementById('discoverProgress').style.width = '20%';
+              document.getElementById('discoverProgressText').textContent =
+                `Enriching ${totalExpected} founders across all LinkedIn industries...`;
+              discoverResults.classList.add('active');
+            }
+            if (evt.type === 'founder') {
+              const f = evt.data;
+              const i = discoveredFounders.length;
+              discoveredFounders.push(f);
+              const el = document.createElement('div');
+              el.innerHTML = renderFounderCard(f, i);
+              founderList.appendChild(el.firstElementChild);
+              loaded++;
+              const pct = Math.min(95, 20 + (loaded / Math.max(totalExpected, 1)) * 75);
+              document.getElementById('discoverProgress').style.width = pct + '%';
+              document.getElementById('discoverProgressText').textContent =
+                `Loaded ${loaded}${totalExpected ? ' of ' + totalExpected : ''} founders...`;
+            }
+            if (evt.type === 'done') {
+              document.getElementById('discoverProgress').style.width = '100%';
+              document.getElementById('discoverProgressText').textContent =
+                `${loaded} founder${loaded !== 1 ? 's' : ''} across all LinkedIn industries`;
+              if (!loaded) {
+                discoverError.textContent = 'No results returned. Try again.';
+                discoverError.style.display = 'block';
+              }
+            }
+            if (evt.type === 'error') throw new Error(evt.message || 'Stream error');
+          }
         }
-
-        const data = await resp.json();
-        discoveredFounders = data.founders;
-
-        document.getElementById('discoverHeader').innerHTML =
-          `Found <span>${data.founders.length}</span> founders for: <span>${esc(data.query)}</span>`;
-
-        founderList.innerHTML = data.founders.map((f, i) => {
-          const badge = f.source ? `<span class="source-badge ${sourceBadgeClass(f.source)}">${esc(f.source)}</span>` : '';
-          const details = [
-            f.industry ? `<span class="fdetail"><span class="flabel">Industry:</span>${esc(f.industry)}</span>` : '',
-            f.stage ? `<span class="fdetail"><span class="flabel">Stage:</span>${esc(f.stage)}</span>` : '',
-            f.date_founded ? `<span class="fdetail"><span class="flabel">Founded:</span>${esc(f.date_founded)}</span>` : '',
-            f.product ? `<span class="fdetail"><span class="flabel">Product:</span>${esc(f.product)}</span>` : '',
-            f.product_desc ? `<span class="fdetail" style="color:var(--fg-muted);margin-top:4px"><span class="flabel">Building:</span>${esc(f.product_desc)}</span>` : '',
-          ].filter(Boolean).join('');
-
-          // Product evaluation card
-          let evalHtml = '';
-          if (f.product_eval && f.product_eval.product_score > 0) {
-            const pe = f.product_eval;
-            const peColor = pe.product_score >= 65 ? 'green' : (pe.product_score >= 40 ? 'yellow' : 'red');
-            const tagClass = (val) => {
-              const v = (val || '').toLowerCase();
-              if (v === 'high' || v === 'strong') return 'pe-tag-high';
-              if (v === 'medium' || v === 'moderate') return 'pe-tag-medium';
-              return 'pe-tag-low';
-            };
-            const signals = [
-              pe.market_potential ? `<span class="pe-tag ${tagClass(pe.market_potential)}">Market: ${esc(pe.market_potential)}</span>` : '',
-              pe.innovation_signal ? `<span class="pe-tag ${tagClass(pe.innovation_signal)}">Innovation: ${esc(pe.innovation_signal)}</span>` : '',
-              pe.scalability ? `<span class="pe-tag ${tagClass(pe.scalability)}">Scale: ${esc(pe.scalability)}</span>` : '',
-              pe.product_stage ? `<span class="pe-tag pe-tag-moderate">${esc(pe.product_stage)}</span>` : '',
-            ].filter(Boolean).join('');
-            evalHtml = `<div class="product-eval">
-              <div class="pe-header">
-                <span class="pe-title">Product Eval</span>
-                <span class="pe-score score-${peColor}">${pe.product_score}/100</span>
-              </div>
-              <div class="pe-bar"><div class="pe-bar-fill bar-${peColor}" style="width:${pe.product_score}%"></div></div>
-              <div class="pe-tags">${signals}</div>
-              <div class="pe-verdict">${esc(pe.verdict)}</div>
-              ${(pe.strengths && pe.strengths.length) ? `<div class="pe-signals">+ ${pe.strengths.map(s => esc(s)).join(' · ')}</div>` : ''}
-              ${(pe.risks && pe.risks.length) ? `<div class="pe-signals" style="color:var(--danger)">- ${pe.risks.map(r => esc(r)).join(' · ')}</div>` : ''}
-            </div>`;
-          }
-
-          const isSaved = isFounderSaved(f.name, f.company);
-          const saveIcon = isSaved ? bookmarkFilled : bookmarkOutline;
-          const saveClass = isSaved ? 'save-btn saved' : 'save-btn';
-          const saveLabel = isSaved ? 'Saved' : 'Save';
-
-          const isSelected = selectedForOutreach.has(i);
-          const selectCb = `<input type="checkbox" class="founder-select-cb" id="outreach-cb-${i}" ${isSelected ? 'checked' : ''}
-            onclick="event.stopPropagation(); toggleOutreachSelect(${i}, this.checked)" title="Select for outreach">`;
-
-          if (f.error) {
-            return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}">
-              ${selectCb}
-              <div class="rank">#${i + 1}</div>
-              <div class="info">
-                <div class="fname">${esc(f.name)}</div>
-                ${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}
-                ${details ? `<div class="fdetails">${details}</div>` : ''}
-                <div class="fmeta" style="margin-top:6px">${badge}</div>
-              </div>
-              ${evalHtml}
-              <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
-              <div class="ferror">${esc(f.error)}</div>
-            </div>`;
-          }
-          return `<div class="founder-row${isSelected ? ' selected' : ''}" id="founder-row-${i}" onclick="showFounderDetail(${i})" style="cursor:pointer">
-            ${selectCb}
-            <div class="rank">#${i + 1}</div>
-            <div class="info">
-              <div class="fname">${esc(f.name)}</div>
-              ${f.company ? `<div class="fmeta">${esc(f.company)}</div>` : ''}
-              ${details ? `<div class="fdetails">${details}</div>` : ''}
-              <div class="fmeta" style="margin-top:6px">${badge}</div>
-            </div>
-            ${evalHtml}
-            <button class="${saveClass}" id="save-btn-${i}" onclick="event.stopPropagation(); saveDiscoveredFounder(${i}, this)">${saveIcon} ${saveLabel}</button>
-          </div>`;
-        }).join('');
-
-        discoverResults.classList.add('active');
       } catch (err) {
         discoverError.textContent = err.message;
         discoverError.style.display = 'block';
       } finally {
         discoverLoading.classList.remove('active');
         discoverBtn.disabled = false;
+        document.getElementById('scanAllBtn').disabled = false;
       }
+    }
+
+    document.getElementById('scanAllBtn').addEventListener('click', () => {
+      runStream('/api/discover/linkedin-all/stream', 'Querying all LinkedIn industry categories...');
     });
 
     // --- Save from discovered founders ---
@@ -1135,7 +1192,7 @@
         btn.textContent = 'Copied!';
         btn.style.background = 'var(--fg)';
         btn.style.borderColor = 'var(--fg)';
-        btn.style.color = 'var(--bg-base)';
+        btn.style.color = 'var(--btn-fg)';
         setTimeout(() => {
           btn.textContent = orig;
           btn.style = '';
