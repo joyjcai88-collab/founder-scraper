@@ -271,7 +271,7 @@ async def discover_all_linkedin_industries(
         )
         try:
             resp = await client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-5",
                 max_tokens=800,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -364,7 +364,7 @@ Rules:
     try:
         client = anthropic.AsyncAnthropic(api_key=api_key)
         resp = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-5",
             max_tokens=1024,
             messages=[{"role": "user", "content": prompt}],
         )

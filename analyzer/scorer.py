@@ -143,7 +143,7 @@ async def score_founder(
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
     response = await client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5",
         max_tokens=1024,
         system=_build_system_prompt(thesis),
         tools=[SCORING_TOOL],

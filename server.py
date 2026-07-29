@@ -581,7 +581,7 @@ Do not include any other text, numbering, or commentary."""
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
     resp = await client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5",
         max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )
