@@ -257,7 +257,7 @@ async def discover_all_linkedin_industries(
         return []
 
     import anthropic
-    client = anthropic.AsyncAnthropic(api_key=api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=5)
 
     async def _bucket_founders(bucket_name: str, industries: List[str]) -> List[Dict[str, str]]:
         industry_list = ", ".join(industries)
@@ -362,7 +362,7 @@ Rules:
 - Vary the list — don't cluster around only the most famous names"""
 
     try:
-        client = anthropic.AsyncAnthropic(api_key=api_key)
+        client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=5)
         resp = await client.messages.create(
             model="claude-sonnet-5",
             max_tokens=2048,

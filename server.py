@@ -579,7 +579,7 @@ Return ONLY the messages, separated by a line containing exactly "---" between e
 {format_instruction}
 Do not include any other text, numbering, or commentary."""
 
-    client = anthropic.AsyncAnthropic(api_key=api_key)
+    client = anthropic.AsyncAnthropic(api_key=api_key, max_retries=5)
     resp = await client.messages.create(
         model="claude-sonnet-5",
         max_tokens=4096,
