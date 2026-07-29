@@ -272,10 +272,10 @@ async def discover_all_linkedin_industries(
         try:
             resp = await client.messages.create(
                 model="claude-sonnet-5",
-                max_tokens=800,
+                max_tokens=2048,
                 messages=[{"role": "user", "content": prompt}],
             )
-            text = resp.content[0].text.strip()
+            text = next((b.text for b in resp.content if b.type == "text"), "").strip()
             match = re.search(r'\[[\s\S]*\]', text)
             if not match:
                 return []
@@ -365,10 +365,10 @@ Rules:
         client = anthropic.AsyncAnthropic(api_key=api_key)
         resp = await client.messages.create(
             model="claude-sonnet-5",
-            max_tokens=1024,
+            max_tokens=2048,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = resp.content[0].text.strip()
+        text = next((b.text for b in resp.content if b.type == "text"), "").strip()
 
         # Extract JSON array (handle any surrounding whitespace or stray text)
         match = re.search(r'\[[\s\S]*\]', text)

@@ -582,10 +582,10 @@ Do not include any other text, numbering, or commentary."""
     client = anthropic.AsyncAnthropic(api_key=api_key)
     resp = await client.messages.create(
         model="claude-sonnet-5",
-        max_tokens=2048,
+        max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
-    raw = resp.content[0].text.strip()
+    raw = next((b.text for b in resp.content if b.type == "text"), "").strip()
 
     # Split by separator
     sections = [s.strip() for s in raw.split("---") if s.strip()]
