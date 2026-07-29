@@ -13,14 +13,14 @@ from models.founder import FounderCard, FounderProfile, ScoreBreakdown
 SCORING_TOOL = {
     "name": "submit_founder_score",
     "description": "Submit the structured scoring analysis for a founder.",
+    "strict": True,
     "input_schema": {
         "type": "object",
+        "additionalProperties": False,
         "properties": {
             "founder_quality": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Score for founder quality: prior exits, domain expertise, technical depth, repeat founder status.",
+                "description": "Score from 0 to 100 for founder quality: prior exits, domain expertise, technical depth, repeat founder status.",
             },
             "founder_quality_rationale": {
                 "type": "string",
@@ -28,9 +28,7 @@ SCORING_TOOL = {
             },
             "market": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Score for market opportunity: TAM, growth rate, competitive density, timing.",
+                "description": "Score from 0 to 100 for market opportunity: TAM, growth rate, competitive density, timing.",
             },
             "market_rationale": {
                 "type": "string",
@@ -38,9 +36,7 @@ SCORING_TOOL = {
             },
             "traction": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Score for traction: public metrics, hiring signals, press coverage, user growth indicators.",
+                "description": "Score from 0 to 100 for traction: public metrics, hiring signals, press coverage, user growth indicators.",
             },
             "traction_rationale": {
                 "type": "string",
@@ -48,9 +44,7 @@ SCORING_TOOL = {
             },
             "network": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Score for network: known investors, advisor quality, notable connections.",
+                "description": "Score from 0 to 100 for network: known investors, advisor quality, notable connections.",
             },
             "network_rationale": {
                 "type": "string",
@@ -58,9 +52,7 @@ SCORING_TOOL = {
             },
             "intangibles": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Score for intangibles: content quality, community engagement, open source contributions.",
+                "description": "Score from 0 to 100 for intangibles: content quality, community engagement, open source contributions.",
             },
             "intangibles_rationale": {
                 "type": "string",
