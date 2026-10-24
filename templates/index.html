@@ -64,15 +64,113 @@
     }
     ::selection { background: #c9f7fb; }
 
-    .container { max-width: 1080px; margin: 0 auto; padding: 40px 40px 120px; }
+    .container { max-width: calc(1180px + 48px); margin: 0 auto; padding: 32px 24px 120px; }
 
     /* Masthead */
-    .scout-home {
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
-      color: var(--fg-subtle); text-decoration: none; display: inline-block; margin-bottom: 44px;
-      transition: color 0.15s;
+    /* Matches joyjcai.com: monogram left, centered wordmark, Menu [M] right, no rule. */
+    .topnav {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      min-height: 64px;
+      padding: 20px 24px 18px;
+      background: var(--paper);
+      flex-shrink: 0;
     }
-    .scout-home:hover { color: var(--fg); }
+    .hd-mark { display: block; width: 26px; height: 26px; color: #000; }
+    .hd-word {
+      margin: 0;
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%);
+      font-family: var(--serif);
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    .hd-word a { color: #000; text-decoration: none; }
+    .hd-word a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 5px; }
+    .hd-slash { color: var(--fg-subtle); }
+    .pill {
+      border: 0;
+      cursor: pointer;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: var(--pill);
+      color: #000;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1;
+      letter-spacing: 0;
+      text-transform: none;
+      white-space: nowrap;
+      transition: background 0.2s ease;
+    }
+    .pill:hover { background: var(--pill-hi); }
+    .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .hd-menu { margin-left: auto; }
+
+    /* Menu overlay, as on joyjcai.com */
+    .site-menu { position: fixed; inset: 0; z-index: 1100; background: linear-gradient(to right, rgba(255,255,255,0.55), rgba(255,255,255,0.92) 60%); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s; }
+    .site-menu.is-open { opacity: 1; visibility: visible; }
+    .menu-close { position: absolute; top: 20px; right: 24px; font-size: 17px; padding: 7px 13px; }
+    .menu-nav { position: absolute; top: 92px; right: 96px; display: flex; flex-direction: column; gap: 14px; }
+    .menu-nav > a { font-family: var(--serif); font-size: 26px; letter-spacing: -0.015em; color: #000; text-decoration: none; transform: translateY(6px); opacity: 0; transition: opacity 0.35s ease, transform 0.35s ease; }
+    .site-menu.is-open .menu-nav > a { opacity: 1; transform: none; }
+    .menu-nav > a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 5px; }
+    .menu-sub { margin-top: 26px; opacity: 0; transition: opacity 0.35s ease 0.26s; }
+    .site-menu.is-open .menu-sub { opacity: 1; }
+    .menu-sub a { font-family: var(--mono); font-size: 12.5px; color: var(--fg-muted); text-decoration: none; }
+    .menu-sub a:hover { color: #000; }
+
+    /* Bottom bar, as on joyjcai.com. Clicks only here: [1] and [2] are this page's tabs. */
+    body { padding-bottom: 64px; }
+    body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 64px; background: #fff; z-index: 139; pointer-events: none; }
+    .ft-pages { position: fixed; left: 24px; bottom: 22px; display: flex; gap: 14px; font-family: var(--mono); font-size: 13px; z-index: 140; }
+    .ft-pages a { color: #000; position: relative; text-decoration: none; }
+    .ft-pages a:hover { color: var(--fg-muted); }
+    .pg-name { color: var(--fg-muted); }
+    .pg-icon { display: none; }
+    .pg-icon svg { width: 13px; height: 13px; display: block; }
+    @media (max-width: 1600px) {
+      .pg-name { position: absolute; left: 0; bottom: calc(100% + 6px); font-size: 11.5px; white-space: nowrap; padding: 2px 6px; margin-left: -6px; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+      .ft-pages a:hover .pg-name, .ft-pages a:focus-visible .pg-name { opacity: 1; }
+      .ft-pages a { display: inline-flex; align-items: center; padding: 12px 6px; margin: -12px -6px; }
+      .pg-icon { display: block; color: var(--fg-muted); }
+    }
+    .ft-find { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 140; }
+    .ft-clock { position: fixed; right: 24px; bottom: 24px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--fg-subtle); z-index: 140; }
+    .find { position: fixed; inset: 0; z-index: 1200; background: rgba(255,255,255,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s; display: flex; justify-content: center; align-items: flex-start; padding-top: 18vh; }
+    .find.is-open { opacity: 1; visibility: visible; }
+    .find-panel { width: min(540px, calc(100vw - 48px)); background: #fff; border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(0,0,0,0.09); }
+    .find-input { width: 100%; border: none; border-bottom: 1px solid var(--border); outline: none; font-family: var(--mono); font-size: 14px; padding: 18px 20px; background: transparent; color: #000; }
+    .find-input::placeholder { color: var(--fg-subtle); }
+    .find-results { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
+    .find-results li { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 20px; cursor: pointer; font-family: var(--serif); font-size: 16px; letter-spacing: -0.01em; }
+    .find-results li.is-sel { background: var(--tile); }
+    .find-results .fr-type, .find-results .find-empty { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--fg-subtle); }
+    .find-results .find-empty { font-size: 12px; cursor: default; }
+    @media (prefers-reduced-motion: reduce) { .site-menu, .menu-nav > a, .menu-sub, .find, .pg-name { transition: none; } }
+    @media (max-width: 640px) {
+      .topnav { padding: 16px 16px 14px; min-height: 56px; }
+      .hd-word { font-size: 22px; top: 18px; }
+      .key-hint { display: none; }
+      .menu-nav { right: 24px; }
+      .ft-clock { display: none; }
+      .ft-pages { left: 16px; }
+      .ft-pages a { padding: 14px 5px; margin: -14px -5px; }
+      .pg-icon svg { width: 16px; height: 16px; }
+      .ft-find { left: auto; right: 16px; transform: none; }
+      body::after { border-top: 1px solid var(--border); }
+    }
+    /* Narrow phones: the title sits after the monogram so it clears the Menu button */
+    @media (max-width: 430px) {
+      .hd-word { left: 52px; transform: none; font-size: clamp(15px, 5.2vw, 22px); top: calc(32px - 0.6em); }
+      .hd-menu { padding: 8px 11px; font-size: 12px; }
+    }
     h1 {
       font-family: var(--serif); font-size: 44px; font-weight: 400;
       letter-spacing: -0.025em; color: var(--fg); margin-bottom: 10px; line-height: 1;
@@ -122,8 +220,8 @@
       grid-column: 1 / -1; justify-self: start;
       background: var(--btn-bg); color: var(--btn-fg);
       border: none; border-radius: 999px; padding: 11px 26px;
-      font-family: var(--mono); font-size: 11px; font-weight: 400;
-      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+      font-family: var(--mono); font-size: 13px; font-weight: 400;
+      letter-spacing: 0; cursor: pointer;
       transition: opacity 0.15s; margin-top: 4px;
     }
     .discover-form button:hover { opacity: 0.82; }
@@ -133,8 +231,8 @@
     .scan-all-btn {
       display: inline-block; background: var(--pill); color: var(--fg);
       border: none; border-radius: 999px; padding: 10px 22px; margin-bottom: 10px;
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
-      text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+      font-family: var(--mono); font-size: 13px; letter-spacing: 0;
+      cursor: pointer; transition: background 0.15s;
     }
     .scan-all-btn:hover { background: var(--pill-hi); }
     .scan-all-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -296,8 +394,8 @@
     .founder-detail.active { display: block; }
     .back-btn {
       background: var(--pill); border: none; color: var(--fg); padding: 8px 18px;
-      border-radius: 999px; cursor: pointer; font-family: var(--mono); font-size: 10.5px;
-      letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 20px; transition: background 0.15s;
+      border-radius: 999px; cursor: pointer; font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0; margin-bottom: 20px; transition: background 0.15s;
     }
     .back-btn:hover { background: var(--pill-hi); }
 
@@ -309,7 +407,7 @@
     .save-btn {
       display: inline-flex; align-items: center; gap: 6px; background: var(--pill); border: none;
       color: var(--fg); padding: 6px 13px; border-radius: 999px; cursor: pointer;
-      font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0;
       transition: background 0.15s, color 0.15s; margin-top: 14px;
     }
     .save-btn:hover { background: var(--pill-hi); }
@@ -328,7 +426,7 @@
     .export-btn {
       display: inline-flex; align-items: center; gap: 7px; background: var(--pill); border: none;
       color: var(--fg); padding: 8px 16px; border-radius: 999px; cursor: pointer;
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0;
       transition: background 0.15s; text-decoration: none;
     }
     .export-btn:hover { background: var(--pill-hi); }
@@ -364,13 +462,13 @@
     .remove-btn {
       display: inline-flex; align-items: center; gap: 5px; background: var(--pill); border: none;
       color: var(--fg-muted); padding: 5px 12px; border-radius: 999px; cursor: pointer;
-      font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.15s;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0; transition: all 0.15s;
     }
     .remove-btn:hover { background: var(--danger-dim); color: var(--danger); }
     .saved-date { font-family: var(--mono); font-size: 9.5px; color: var(--fg-subtle); margin-top: auto; padding-top: 12px; letter-spacing: 0.05em; }
 
     .toast {
-      position: fixed; bottom: 24px; right: 24px; background: var(--fg); color: var(--paper);
+      position: fixed; bottom: 80px; right: 24px; background: var(--fg); color: var(--paper);
       padding: 12px 20px; border-radius: 999px; font-family: var(--mono); font-size: 10.5px;
       letter-spacing: 0.06em; text-transform: uppercase; z-index: 1000;
       transform: translateY(100px); opacity: 0; transition: all 0.2s ease;
@@ -395,8 +493,8 @@
     .outreach-bar-clear:hover { color: var(--fg); }
     .outreach-bar-btn {
       background: var(--btn-bg); color: var(--btn-fg); border: none; padding: 10px 22px;
-      border-radius: 999px; font-family: var(--mono); font-size: 10px; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; letter-spacing: 0.08em; text-transform: uppercase;
+      border-radius: 999px; font-family: var(--mono); font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; letter-spacing: 0;
       transition: opacity 0.15s;
     }
     .outreach-bar-btn:hover { opacity: 0.82; }
@@ -407,10 +505,11 @@
     .outreach-panel {
       position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100vw;
       background: var(--paper); border-left: 1px solid var(--border); z-index: 700;
-      box-shadow: -16px 0 48px rgba(0,0,0,0.07); display: flex; flex-direction: column;
-      transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+      display: flex; flex-direction: column; visibility: hidden;
+      transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), visibility 0s linear 0.25s;
     }
-    .outreach-panel.visible { transform: translateX(0); }
+    /* The shadow only exists while the panel is open, so none shows at the screen edge */
+    .outreach-panel.visible { transform: translateX(0); visibility: visible; box-shadow: -16px 0 48px rgba(0,0,0,0.07); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
     .op-header { padding: 24px 26px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .op-header h2 { font-family: var(--serif); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; color: var(--fg); }
     .op-close { background: none; border: none; cursor: pointer; color: var(--fg-subtle); padding: 4px; transition: color 0.12s; }
@@ -441,9 +540,9 @@
     .op-field textarea::placeholder { color: var(--fg-subtle); }
     .op-generate-btn {
       background: var(--btn-bg); color: var(--btn-fg); border: none; padding: 13px;
-      border-radius: 999px; font-family: var(--mono); font-size: 10px; cursor: pointer;
+      border-radius: 999px; font-family: var(--mono); font-size: 13px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      letter-spacing: 0.09em; text-transform: uppercase; transition: opacity 0.15s;
+      letter-spacing: 0; transition: opacity 0.15s;
     }
     .op-generate-btn:hover { opacity: 0.82; }
     .op-generate-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -454,8 +553,8 @@
     .op-msg-co { font-size: 13px; color: var(--fg-muted); margin-left: 6px; }
     .op-msg-copy {
       background: var(--paper); border: 1px solid var(--border); color: var(--fg-muted);
-      padding: 4px 11px; border-radius: 999px; font-family: var(--mono); font-size: 9px;
-      cursor: pointer; letter-spacing: 0.07em; text-transform: uppercase; transition: all 0.12s;
+      padding: 4px 11px; border-radius: 999px; font-family: var(--mono); font-size: 11px;
+      cursor: pointer; letter-spacing: 0; transition: all 0.12s;
     }
     .op-msg-copy:hover { color: var(--fg); border-color: var(--fg); }
     .op-msg-subject { font-family: var(--mono); font-size: 10.5px; color: var(--fg-subtle); padding: 12px 14px 0; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -463,15 +562,15 @@
     .op-footer { padding: 18px 26px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
     .op-copy-all-btn {
       flex: 1; background: var(--pill); color: var(--fg); border: none; padding: 11px;
-      border-radius: 999px; font-family: var(--mono); font-size: 10px; cursor: pointer;
-      letter-spacing: 0.08em; text-transform: uppercase; transition: background 0.15s;
+      border-radius: 999px; font-family: var(--mono); font-size: 13px; cursor: pointer;
+      letter-spacing: 0; transition: background 0.15s;
     }
     .op-copy-all-btn:hover { background: var(--pill-hi); }
     .op-loading { text-align: center; padding: 32px 16px; color: var(--fg-muted); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; }
     .op-loading .spinner { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 12px; }
 
     @media (max-width: 640px) {
-      .container { padding: 28px 20px 120px; }
+      .container { padding: 24px 16px 120px; }
       h1 { font-size: 32px; }
       .discover-form { grid-template-columns: 1fr; gap: 18px; }
       .op-row { grid-template-columns: 1fr; }
@@ -481,8 +580,32 @@
   </style>
 </head>
 <body>
+  <header class="topnav">
+    <a class="hd-mark" href="https://joyjcai.com" aria-label="Joy Cai home">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><text x="13" y="19" text-anchor="middle" font-family="Georgia, 'Times New Roman', Times, serif" font-size="18" letter-spacing="-1.2"><tspan fill="currentColor">J</tspan><tspan fill="#00b6c4">C</tspan></text></svg>
+    </a>
+    <div class="hd-word"><a href="https://joyjcai.com">Joy&nbsp;Cai</a><span class="hd-slash">&thinsp;/&thinsp;</span><a href="/">VC Scout</a></div>
+    <button type="button" class="pill hd-menu" id="btnMenu" aria-label="Open menu" aria-controls="siteMenu" aria-expanded="false">Menu<span class="key-hint">&nbsp;[M]</span></button>
+  </header>
+
+  <!-- The same menu as the rest of joyjcai.com -->
+  <div class="site-menu" id="siteMenu" aria-hidden="true">
+    <button type="button" class="pill menu-close" id="btnMenuClose" aria-label="Close menu">&times;</button>
+    <nav class="menu-nav" aria-label="joyjcai.com">
+      <a href="https://joyjcai.com/">Home</a>
+      <a href="https://joyjcai.com/experience">Experience</a>
+      <a href="https://joyjcai.com/advisory">Advisory</a>
+      <a href="https://joyjcai.com/tools">Tools</a>
+      <a href="https://joyjcai.com/blog">Blog</a>
+      <a href="https://joyjcai.com/adoptdontshop">Adopt Don&#39;t Shop</a>
+      <a href="https://joyjcai.com/contact">Contact</a>
+      <div class="menu-sub">
+        <a href="https://www.linkedin.com/in/joycai12/" target="_blank" rel="noopener">LinkedIn &nearr;</a>
+      </div>
+    </nav>
+  </div>
+
   <div class="container">
-    <a class="scout-home" href="https://joyjcai.com">&larr;&nbsp;&nbsp;JOYJCAI.COM</a>
     <h1>VC Scout</h1>
     <p class="subtitle">AI-powered founder discovery and scoring for VC deal flow</p>
 
@@ -1392,6 +1515,138 @@
       }).join('\n\n---\n\n');
       navigator.clipboard.writeText(parts).then(() => showToast('All messages copied!'));
     }
+  </script>
+  <!-- Bottom bar and Find: the same as the rest of joyjcai.com -->
+  <nav class="ft-pages" aria-label="joyjcai.com pages">
+    <a href="https://joyjcai.com/" aria-label="Home"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2.5 7.5 8 3l5.5 4.5V13h-11z"/><path d="M6.5 13V9.5h3V13"/></svg></span><span class="pg-name">Home</span></a>
+    <a href="https://joyjcai.com/experience" aria-label="Experience"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="12" height="8"/><path d="M6 5V3h4v2M2 9h12"/></svg></span><span class="pg-name">Experience</span></a>
+    <a href="https://joyjcai.com/advisory" aria-label="Advisory"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="2.5" width="4.5" height="4.5"/><rect x="9" y="2.5" width="4.5" height="4.5"/><rect x="2.5" y="9" width="4.5" height="4.5"/><rect x="9" y="9" width="4.5" height="4.5"/></svg></span><span class="pg-name">Advisory</span></a>
+    <a href="https://joyjcai.com/tools" aria-label="Tools"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5.5 2.5 2.5 5.5l3 3M10.5 7.5l3 3-3 3M9.5 2.5l-3 11"/></svg></span><span class="pg-name">Tools</span></a>
+    <a href="https://joyjcai.com/blog" aria-label="Blog"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z"/><path d="M9.5 4l2.5 2.5"/></svg></span><span class="pg-name">Blog</span></a>
+    <a href="https://joyjcai.com/adoptdontshop" aria-label="Adopt Don&#39;t Shop"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9C7 5.6 9.4 4 12 4s5 1.6 5 5v4c0 4-2.4 6.5-5 6.5S7 17 7 13Z"/><path d="M7.2 7.8C4.6 7.4 3 9.6 3.5 13c.3 2 1.9 2.2 3.5.6"/><path d="M16.8 7.8c2.6-.4 4.2 1.8 3.7 5.2-.3 2-1.9 2.2-3.5.6"/><circle cx="10" cy="11" r=".8" fill="currentColor" stroke="none"/><circle cx="14" cy="11" r=".8" fill="currentColor" stroke="none"/><path d="M11 14.4h2l-1 1.2Z" fill="currentColor"/></svg></span><span class="pg-name">Adopt Don&#39;t Shop</span></a>
+    <a href="https://joyjcai.com/contact" aria-label="Contact"><span class="pg-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3.5" width="12" height="9"/><path d="M2 4l6 5 6-5"/></svg></span><span class="pg-name">Contact</span></a>
+  </nav>
+  <button type="button" class="pill ft-find" id="btnFind">Find<span class="key-hint">&nbsp;[F]</span></button>
+  <div class="ft-clock" id="ftClock"></div>
+  <div class="find" id="find" aria-hidden="true">
+    <div class="find-panel" role="dialog" aria-label="Find on joyjcai.com">
+      <input class="find-input" id="findInput" type="text" placeholder="Type to search…" autocomplete="off" spellcheck="false" aria-label="Search joyjcai.com">
+      <ul class="find-results" id="findResults" role="listbox"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Site chrome shared with joyjcai.com: menu [M], Find [F] and the Pacific clock.
+    // No number-key page jumps here: [1] and [2] are this page's tabs.
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+      const menu = $('siteMenu');
+      const setMenu = (open) => {
+        menu.classList.toggle('is-open', open);
+        menu.setAttribute('aria-hidden', String(!open));
+        $('btnMenu').setAttribute('aria-expanded', String(open));
+        (open ? $('btnMenuClose') : $('btnMenu')).focus();
+      };
+      $('btnMenu').addEventListener('click', () => setMenu(true));
+      $('btnMenuClose').addEventListener('click', () => setMenu(false));
+      menu.addEventListener('click', (e) => { if (e.target === menu) setMenu(false); });
+
+      const tick = () => {
+        $('ftClock').textContent = `(PT) ${new Date().toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
+      };
+      tick();
+      setInterval(tick, 1000);
+
+      const SITE = 'https://joyjcai.com';
+      const INDEX = [
+        { t: 'Home', type: 'PAGE', url: `${SITE}/`, text: 'bio about joy cai' },
+        { t: 'Experience', type: 'PAGE', url: `${SITE}/experience`, text: 'experience log resume roles work history education' },
+        { t: 'Advisory', type: 'PAGE', url: `${SITE}/advisory`, text: 'advisory advisor companies portfolio' },
+        { t: 'Tools', type: 'PAGE', url: `${SITE}/tools`, text: 'tools projects built founders investors' },
+        { t: 'Blog', type: 'PAGE', url: `${SITE}/blog`, text: 'blog writing posts deep dives pitch notes' },
+        { t: "Adopt Don't Shop", type: 'PAGE', url: `${SITE}/adoptdontshop`, text: 'adopt dont shop pets dogs cats rabbits shelters rescues animals luke' },
+        { t: 'Contact', type: 'PAGE', url: `${SITE}/contact`, text: 'contact email message form consulting' },
+        { t: 'North Court', type: 'SERVICE', url: 'https://www.northcourtcapital.com/', newTab: true },
+        { t: 'Flagler Health', type: 'COMPANY', url: 'https://www.flaglerhealth.io/', newTab: true },
+        { t: 'Quina Health', type: 'COMPANY', url: 'https://quinahealth-archive.joyjcai.com/', newTab: true },
+        { t: 'Solis Health', type: 'COMPANY', url: 'https://solishealthwellness-archive.webflow.io/', newTab: true },
+        { t: 'Hustle Fund', type: 'COMPANY', url: 'https://www.hustlefund.vc/', newTab: true },
+        { t: 'LinkedIn', type: 'LINK', url: 'https://www.linkedin.com/in/joycai12/', newTab: true },
+      ];
+      const find = $('find'), input = $('findInput'), list = $('findResults');
+      let sel = 0, shown = [];
+      function render(q) {
+        const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (!terms.length) shown = INDEX.filter((i) => i.type === 'PAGE' || i.t === 'North Court');
+        else {
+          // every word must appear somewhere; title matches rank above content matches
+          const score = (i) => {
+            const title = i.t.toLowerCase();
+            const hay = `${title} ${i.type.toLowerCase()} ${(i.text || '').toLowerCase()}`;
+            if (!terms.every((w) => hay.includes(w))) return -1;
+            return terms.every((w) => title.includes(w)) ? (title.startsWith(terms[0]) ? 3 : 2) : 1;
+          };
+          shown = INDEX.map((i) => [i, score(i)]).filter(([, sc]) => sc > 0).sort((x, y) => y[1] - x[1]).map(([i]) => i);
+        }
+        sel = 0;
+        list.innerHTML = shown.length
+          ? shown.map((i, n) => `<li role="option" data-n="${n}"${n ? '' : ' class="is-sel" aria-selected="true"'}><span>${esc(i.t)}</span><span class="fr-type">${i.type}</span></li>`).join('')
+          : '<li class="find-empty">NO RESULTS</li>';
+      }
+      function paint() {
+        list.querySelectorAll('li[data-n]').forEach((li) => {
+          const on = +li.dataset.n === sel;
+          li.classList.toggle('is-sel', on);
+          li.setAttribute('aria-selected', String(on));
+          if (on) li.scrollIntoView({ block: 'nearest' });
+        });
+      }
+      function pick(item) {
+        closeFind();
+        if (item.newTab) window.open(item.url, '_blank', 'noopener');
+        else location.href = item.url;
+      }
+      function openFind() {
+        find.classList.add('is-open');
+        find.setAttribute('aria-hidden', 'false');
+        input.value = '';
+        render('');
+        setTimeout(() => input.focus(), 50);
+      }
+      function closeFind() {
+        find.classList.remove('is-open');
+        find.setAttribute('aria-hidden', 'true');
+        input.blur();
+      }
+      $('btnFind').addEventListener('click', openFind);
+      find.addEventListener('click', (e) => { if (e.target === find) closeFind(); });
+      input.addEventListener('input', () => render(input.value));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); paint(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); paint(); }
+        else if (e.key === 'Enter' && shown[sel]) pick(shown[sel]);
+      });
+      list.addEventListener('click', (e) => {
+        const li = e.target.closest('li[data-n]');
+        if (li) pick(shown[+li.dataset.n]);
+      });
+      list.addEventListener('mousemove', (e) => {
+        const li = e.target.closest('li[data-n]');
+        if (li && +li.dataset.n !== sel) { sel = +li.dataset.n; paint(); }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const k = e.key.toLowerCase();
+        if (find.classList.contains('is-open')) { if (k === 'escape') closeFind(); return; }
+        if (menu.classList.contains('is-open')) { if (k === 'escape' || k === 'm') setMenu(false); return; }
+        if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (k === 'm') setMenu(true);
+        else if (k === 'f') { e.preventDefault(); openFind(); }
+      });
+    })();
   </script>
 </body>
 </html>
