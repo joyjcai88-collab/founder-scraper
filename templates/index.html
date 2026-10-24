@@ -1648,5 +1648,205 @@
       });
     })();
   </script>
+  <style>
+    /* Dropdowns: the same custom menus as joyjcai.com/adoptdontshop. Each mirrors a native
+       <select>, which stays (hidden) as the source of truth. Selectors are doubled up so the
+       page's own button and select rules don't override them. */
+    .dd { position: relative; width: 100%; }
+    .dd > .dd-native { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; }
+    .dd > button.dd-btn {
+      display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 38px; margin: 0;
+      padding: 8px 0 7px; border: 0; border-bottom: 1px solid #e6e6e6; border-radius: 0;
+      background: transparent; box-shadow: none; opacity: 1;
+      font-family: 'IBM Plex Mono', 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px; font-weight: 400; line-height: 22px; letter-spacing: 0; text-transform: none;
+      color: #000; text-align: left; cursor: pointer; transition: border-color 0.15s;
+    }
+    .dd > button.dd-btn:hover { border-bottom-color: #a3a3a3; background: transparent; }
+    .dd.open > button.dd-btn, .dd > button.dd-btn:focus-visible { border-bottom-color: #00b6c4; outline: none; }
+    .dd > button.dd-btn::after {
+      content: ""; flex: none; margin-left: auto; align-self: center; width: 10px; height: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a3a3a3'/%3E%3C/svg%3E") no-repeat center;
+      transition: transform 0.15s;
+    }
+    .dd.open > button.dd-btn::after { transform: rotate(180deg); }
+    .dd.disabled > button.dd-btn { color: #a3a3a3; cursor: default; }
+    .dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dd > .dd-menu {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 900; min-width: 100%; width: max-content;
+      max-width: min(320px, calc(100vw - 32px)); max-height: 320px; overflow-y: auto; margin: 0; padding: 4px 0;
+      list-style: none; background: #fff; border: 1px solid #e6e6e6; border-radius: 0; box-shadow: none;
+    }
+    .dd > .dd-menu li {
+      padding: 8px 14px 8px 16px; border-left: 2px solid transparent; cursor: pointer;
+      font-family: 'IBM Plex Mono', 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px; line-height: 1.4; letter-spacing: 0; text-transform: none; color: #757575;
+    }
+    .dd > .dd-menu li.active { background: #f5f5f5; color: #000; }
+    .dd > .dd-menu li.on { color: #000; border-left-color: #00b6c4; }
+    .dd > .dd-menu li.off { color: #a3a3a3; cursor: default; }
+    @media (pointer: coarse) { .dd > button.dd-btn { font-size: 16px; } }
+  </style>
+  <script>
+    // Dropdowns: the same custom menus as joyjcai.com/adoptdontshop (see its dropdown.js).
+    // Every <select> on the page, including ones added later, gets one.
+    (() => {
+      const all = new Set();
+      const escape = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      let uid = 0;
+
+      function enhance(select) {
+        if (select.closest('.dd')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'dd';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dd-btn';
+        btn.setAttribute('aria-haspopup', 'listbox');
+        btn.setAttribute('aria-expanded', 'false');
+        const name = select.getAttribute('aria-label') || select.id && document.querySelector(`label[for="${select.id}"]`)?.textContent;
+        if (name) btn.setAttribute('aria-label', name.trim());
+        const label = document.createElement('span');
+        label.className = 'dd-label';
+        btn.append(label);
+        const menu = document.createElement('ul');
+        menu.className = 'dd-menu';
+        menu.setAttribute('role', 'listbox');
+        menu.hidden = true;
+        menu.id = `${select.id || 'dd' + ++uid}-menu`;
+        btn.setAttribute('aria-controls', menu.id);
+
+        select.parentNode.insertBefore(wrap, select);
+        wrap.append(select, btn, menu);
+        select.classList.add('dd-native');
+        select.tabIndex = -1;
+        select.setAttribute('aria-hidden', 'true');
+
+        let active = -1;
+        const options = () => [...select.options];
+
+        function render() {
+          label.textContent = select.selectedOptions[0]?.textContent ?? '';
+          btn.disabled = select.disabled;
+          wrap.classList.toggle('disabled', select.disabled);
+          menu.innerHTML = options()
+            .map((o, i) => `<li role="option" id="${menu.id}-${i}" data-i="${i}" aria-selected="${o.selected}"${o.disabled ? ' aria-disabled="true"' : ''} class="${o.selected ? 'on' : ''}${o.disabled ? ' off' : ''}">${escape(o.textContent)}</li>`)
+            .join('');
+        }
+        function setActive(i, step = 1) {
+          const items = menu.children;
+          if (!items.length) return;
+          active = (i + items.length) % items.length;
+          for (let n = 0; items[active].classList.contains('off') && n < items.length; n++) active = (active + step + items.length) % items.length;
+          [...items].forEach((li, k) => li.classList.toggle('active', k === active));
+          items[active].scrollIntoView({ block: 'nearest' });
+          btn.setAttribute('aria-activedescendant', items[active].id);
+        }
+        function open() {
+          all.forEach((d) => d !== api && d.close());
+          render();
+          menu.hidden = false;
+          // Open toward whichever side keeps the menu on screen (matters on phones).
+          menu.style.left = '0';
+          menu.style.right = 'auto';
+          if (menu.getBoundingClientRect().right > document.documentElement.clientWidth - 8) {
+            menu.style.left = 'auto';
+            menu.style.right = '0';
+          }
+          // Open upward when the menu would run under the bottom bar and there's more room above.
+          menu.style.top = '';
+          menu.style.bottom = '';
+          const r = menu.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+          if (r.bottom > innerHeight - 72 && w.top > innerHeight - w.bottom) {
+            menu.style.top = 'auto';
+            menu.style.bottom = 'calc(100% + 4px)';
+          }
+          wrap.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+          setActive(Math.max(0, select.selectedIndex));
+        }
+        function close() {
+          if (menu.hidden) return;
+          menu.hidden = true;
+          wrap.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.removeAttribute('aria-activedescendant');
+        }
+        function choose(i) {
+          if (select.options[i]?.disabled) return;
+          const changed = select.selectedIndex !== i;
+          select.selectedIndex = i;
+          close();
+          btn.focus();
+          if (changed) {
+            select.dispatchEvent(new Event('input', { bubbles: true }));
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+
+        btn.addEventListener('click', () => (menu.hidden ? open() : close()));
+        menu.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus on the button
+        menu.addEventListener('click', (e) => {
+          const li = e.target.closest('li[data-i]');
+          if (li) choose(+li.dataset.i);
+        });
+        menu.addEventListener('mousemove', (e) => {
+          const li = e.target.closest('li[data-i]');
+          if (li && +li.dataset.i !== active) setActive(+li.dataset.i);
+        });
+        btn.addEventListener('keydown', (e) => {
+          const isOpen = !menu.hidden;
+          if (['ArrowDown', 'ArrowUp'].includes(e.key)) {
+            e.preventDefault();
+            if (!isOpen) return open();
+            setActive(active + (e.key === 'ArrowDown' ? 1 : -1), e.key === 'ArrowDown' ? 1 : -1);
+          } else if (e.key === 'Home' && isOpen) { e.preventDefault(); setActive(0); }
+          else if (e.key === 'End' && isOpen) { e.preventDefault(); setActive(menu.children.length - 1); }
+          else if ((e.key === 'Enter' || e.key === ' ') && isOpen) { e.preventDefault(); choose(active); }
+          else if (e.key === 'Escape' && isOpen) { e.preventDefault(); e.stopPropagation(); close(); }
+          else if (e.key === 'Tab') close();
+          else if (e.key.length === 1 && /\S/.test(e.key)) {
+            // Jump to the next option starting with the typed letter.
+            e.stopPropagation();
+            if (!isOpen) open();
+            const opts = options();
+            for (let k = 0; k < opts.length; k++) {
+              const i = (active + 1 + k) % opts.length;
+              if (opts[i].textContent.trim().toLowerCase().startsWith(e.key.toLowerCase())) { setActive(i); break; }
+            }
+          }
+        });
+
+        // Keep the label right however the value changes: options rebuilt, a form reset,
+        // or code assigning .value / .selectedIndex directly.
+        new MutationObserver(render).observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+        select.addEventListener('change', render);
+        select.form?.addEventListener('reset', () => setTimeout(render));
+        for (const prop of ['value', 'selectedIndex']) {
+          const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, prop);
+          Object.defineProperty(select, prop, { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); render(); } });
+        }
+
+        const api = { close, render };
+        all.add(api);
+        render();
+      }
+
+      const scan = (root) => root.querySelectorAll?.('select:not(.dd-native)').forEach(enhance);
+      const start = () => {
+        scan(document);
+        new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach((n) => {
+          if (n.nodeType !== 1) return;
+          if (n.matches('select:not(.dd-native)')) enhance(n);
+          else scan(n);
+        }))).observe(document.body, { childList: true, subtree: true });
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+      else start();
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dd')) all.forEach((d) => d.close());
+      });
+    })();
+  </script>
 </body>
 </html>
