@@ -1901,12 +1901,14 @@
   css.textContent =
     '.luke-egg{box-sizing:content-box;position:fixed;display:block;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;width:15px;height:15px;padding:8px;margin:-8px;color:#d6d6d6;transition:color .2s ease}' +
     '.luke-egg svg{display:block;width:15px;height:15px;transform-origin:50% 100%}' +
-    '.luke-egg:hover,.luke-egg:focus-visible{color:#000;outline:none}' +
-    '.luke-egg:hover svg,.luke-egg:focus-visible svg{animation:luke-hop .5s ease}' +
+    '.luke-egg:focus-visible,.luke-egg.found{color:#000;outline:none}' +
+    '.luke-egg:focus-visible svg,.luke-egg.found svg{animation:luke-hop .5s ease}' +
+    '@media (hover:hover){.luke-egg:hover{color:#000}.luke-egg:hover svg{animation:luke-hop .5s ease}}' +
+    '@media (pointer:coarse){.luke-egg{padding:12px;margin:-12px}.luke-tip{font-size:12.5px;padding:8px 12px}}' +
     '@keyframes luke-hop{0%,100%{transform:none}35%{transform:translateY(-3px) rotate(-6deg)}65%{transform:translateY(0) rotate(4deg)}}' +
     '.luke-tip{position:fixed;padding:6px 10px;background:#fff;border:1px solid #e6e6e6;font-family:"IBM Plex Mono","SF Mono",Menlo,Consolas,monospace;font-size:11.5px;line-height:1.3;color:#000;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s ease}' +
     '.luke-tip.on{opacity:1}' +
-    '@media (prefers-reduced-motion:reduce){.luke-egg:hover svg{animation:none}.luke-tip{transition:none}}';
+    '@media (prefers-reduced-motion:reduce){.luke-egg svg,.luke-egg:hover svg{animation:none!important}.luke-tip{transition:none}}';
   document.head.appendChild(css);
   var a = document.createElement('button');
   a.type = 'button';
@@ -1926,13 +1928,16 @@
   a.addEventListener('click', function () {
     tip.textContent = 'Congrats! You found Luke.';
     var d = a.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
-    var cx = d.left + d.width / 2, y = d.top + 8 - h - 8;
-    if (y < 8) y = d.top + 8 + S + 8;
+    var pad = (d.width - S) / 2, cx = d.left + d.width / 2, y = d.top + pad - h - 8;
+    if (y < 8) y = d.top + pad + S + 8;
     tip.style.left = Math.round(Math.max(8, Math.min(innerWidth - w - 8, cx - w / 2))) + 'px';
     tip.style.top = Math.round(y) + 'px';
     tip.classList.add('on');
+    a.classList.remove('found');
+    void a.offsetWidth; // restart the hop on every tap
+    a.classList.add('found');
     clearTimeout(hide);
-    hide = setTimeout(function () { tip.classList.remove('on'); }, 2600);
+    hide = setTimeout(function () { tip.classList.remove('on'); a.classList.remove('found'); a.blur(); }, 2600);
   });
   var place = function () {
     var spot = want === 'slides' ? SLIDES[location.pathname.split('/')[1]] || 'bar' : want;
